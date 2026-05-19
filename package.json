@@ -1,0 +1,49 @@
+{
+  "name": "verity-charts-playground",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Standalone Storybook playground that mirrors every distinct Highcharts chart shape used in customer-facing Command. Companion to documentation/20-core-projects/ai-in-command/ai-platform-strategy/10-highcharts-feature-audit.md.",
+  "type": "module",
+  "scripts": {
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "preview-storybook": "vite preview --outDir storybook-static"
+  },
+  "dependencies": {
+    "@visx/axis": "3.4.0",
+    "@visx/curve": "3.3.0",
+    "@visx/event": "3.3.0",
+    "@visx/gradient": "3.3.0",
+    "@visx/grid": "3.3.0",
+    "@visx/group": "3.3.0",
+    "@visx/pattern": "3.3.0",
+    "@visx/point": "3.3.0",
+    "@visx/responsive": "3.12.0",
+    "@visx/scale": "3.3.0",
+    "@visx/shape": "3.3.0",
+    "@visx/text": "3.3.0",
+    "@visx/tooltip": "3.3.0",
+    "highcharts": "11.4.7",
+    "highcharts-react-official": "3.2.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "8.6.18",
+    "@storybook/addon-interactions": "8.6.18",
+    "@storybook/blocks": "8.6.18",
+    "@storybook/react": "8.6.18",
+    "@storybook/react-vite": "8.6.18",
+    "@storybook/test": "8.6.18",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "playwright": "^1.60.0",
+    "storybook": "8.6.18",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

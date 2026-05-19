@@ -1,0 +1,120 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="About" />
+
+# Verity Charts Playground
+
+A runnable Storybook that mirrors every customer-facing analytics chart shape in Command, with fake data and source backlinks. Visual companion to:
+
+- `documentation/20-core-projects/ai-in-command/ai-platform-strategy/09-command-chart-inventory.md` (where every chart lives).
+- `documentation/20-core-projects/ai-in-command/ai-platform-strategy/10-highcharts-feature-audit.md` (which Highcharts features the Verity primitive set has to cover).
+
+## Top-level structure
+
+Three top-level groups. The first two show production reality; the third shows the audit's recommended abstraction layer.
+
+<table className="vp-table">
+  <thead>
+    <tr>
+      <th>Group</th>
+      <th>What lives here</th>
+      <th>Production scope</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>01 Highcharts</strong></td>
+      <td>Every Verity <code>Chart</code> / <code>ChartAdvanced</code> consumer plus the one direct-import (Intercoms). Subgrouped by chart type.</td>
+      <td>57 consumer files in Verkada-Web (per the audit). 16 distinct shapes in the playground.</td>
+    </tr>
+    <tr>
+      <td><strong>02 visx</strong></td>
+      <td>Production-faithful renders of every visx surface still in customer-facing Command. Subgrouped by chart shape.</td>
+      <td>8 distinct surfaces covering the visx half of the inventory.</td>
+    </tr>
+    <tr>
+      <td><strong>03 Verity Primitives</strong></td>
+      <td>One Story per proposed Verity DataViz primitive component, abstracted away from individual product team implementations. Interactive Controls, annotated prop API, production source mapping.</td>
+      <td>8 primitives (ColumnChart, LineChart, AreaChart, Gauge, ComboTimeSeriesChart, ThresholdEditorChart, Sparkline, ExtendChart escape hatch). Covers 53 of 57 audited files.</td>
+    </tr>
+  </tbody>
+</table>
+
+Out of scope: maps, heatmaps, audio waveforms, CV overlays, vsuite internal tooling, and the deprecated alarms reports.
+
+## Coverage against the inventory
+
+The chart inventory enumerates 19 customer-facing analytics surfaces. The playground covers every live one:
+
+<table className="vp-table">
+  <thead>
+    <tr>
+      <th>Inventory #</th>
+      <th>Surface</th>
+      <th>Library</th>
+      <th>Playground story</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>Cameras Analytics Dashboard</td><td>Highcharts</td><td>01 Highcharts / Columns / Alerts Trends</td></tr>
+    <tr><td>2</td><td>Camera Analytics tab (sparklines)</td><td>visx</td><td>02 visx / Sparklines / Camera Network Indicator</td></tr>
+    <tr><td>3</td><td>Camera Search motion plus people strip</td><td>custom d3</td><td>out of scope</td></tr>
+    <tr><td>4</td><td>Sensor Detail with video-scrub</td><td>Highcharts</td><td>01 Highcharts / Lines / Sensor Default plus Threshold Editor</td></tr>
+    <tr><td>5</td><td>Sensor Dashboard</td><td>Highcharts</td><td>01 Highcharts / Lines / Sensor Dashboard Tile</td></tr>
+    <tr><td>6</td><td>Attendance Analytics (Verity filter bar)</td><td>Highcharts (Stock)</td><td>01 Highcharts / Combo / Attendance Analytics</td></tr>
+    <tr><td>7</td><td>Door detail / DoorStatsChart</td><td>visx</td><td>(not yet; add if needed)</td></tr>
+    <tr><td>8</td><td>Alarms wireless connection signal</td><td>Highcharts</td><td>01 Highcharts / Lines / Alarms Wireless Signal</td></tr>
+    <tr><td>9</td><td>Alarms AI Schedule horizontal bars</td><td>visx</td><td>02 visx / Schedules / Alarms AI Schedule</td></tr>
+    <tr><td>10</td><td>Alarms reports (deprecated)</td><td>n/a</td><td>skipped</td></tr>
+    <tr><td>11</td><td>Alarms Virtual Guard (deprecated)</td><td>n/a</td><td>skipped</td></tr>
+    <tr><td>12</td><td>Intercoms Dashboard</td><td>Highcharts (direct)</td><td>01 Highcharts / Columns / Intercoms Dashboard</td></tr>
+    <tr><td>13, 14</td><td>Gateway detail (uptime + throughput)</td><td>Highcharts + visx</td><td>01 Highcharts / Columns / Gateway Uptime plus 02 visx / Lines / Gateway Throughput</td></tr>
+    <tr><td>15</td><td>Gateway throughput plus signal (visx half)</td><td>visx</td><td>02 visx / Lines / Gateway Throughput</td></tr>
+    <tr><td>16</td><td>Connect Box stats</td><td>Highcharts</td><td>01 Highcharts / Gauges / Connect Box</td></tr>
+    <tr><td>17</td><td>Trailer detail power metrics</td><td>Highcharts (Stock)</td><td>01 Highcharts / Combo / Trailer Power</td></tr>
+    <tr><td>18</td><td>Live bandwidth sparkline</td><td>visx</td><td>02 visx / Sparklines / Live Bandwidth</td></tr>
+    <tr><td>19</td><td>Camera network indicator sparkline</td><td>visx</td><td>02 visx / Sparklines / Camera Network Indicator</td></tr>
+  </tbody>
+</table>
+
+Plus 5 stories beyond the 19 inventory surfaces that cover important Highcharts shapes from the audit: Sales Conversion (line), Device Metric RSSI (area + zones), Sensor Audio arearange, Participant Status (percent-stacked area), Unite Elapsed Clock (literal gauge), Gateway Navigation Arrows (custom-renderer escape hatch), Camera Stats Battery (visx), Camera Stats Motion Vis (visx bespoke), Cloud Backup Pie (visx custom donut).
+
+**Story count:** 16 Highcharts + 8 visx + 8 Verity Primitive stories + 2 docs pages = 34 entries.
+
+## Using the three sections together
+
+A useful pattern for design review:
+
+1. Open a **01 Highcharts** story (e.g., Intercoms Dashboard) to see what production looks like today.
+2. Open the matching **03 Verity Primitives** story (e.g., ColumnChart) in another tab.
+3. Compare: the production story shows raw Highcharts options; the primitive story shows the same chart driven by structured props with the Controls panel.
+4. The primitive story's "Production sources this primitive covers" table tells you which other production surfaces collapse into this primitive.
+
+This is the workflow the playground is designed for.
+
+## How to run
+
+```bash
+cd documentation/17-ux-design/verity-charts-playground
+npm install
+npm run storybook
+```
+
+Storybook opens on `http://localhost:6006`. Hot reload is on; any edit to a `*.stories.tsx` re-renders.
+
+## How to add a new story
+
+1. Pick the library group (`01-highcharts/` or `02-visx/`), then the subfolder by chart type.
+2. Copy the closest existing `*.stories.tsx` as a template.
+3. Update the chart options or visx setup to match your target.
+4. Set `parameters.docs.description.component` to a paragraph that includes: what it shows, the production source path in `Verkada-Web`, and the Verity primitive target from the audit.
+5. Use seeded fake data from `src/utils/fakeData.ts`.
+
+## Versions (pinned to match Verkada-Web)
+
+- Highcharts: **11.4.7**
+- highcharts-react-official: **3.2.1**
+- visx: **3.3.0** (and 3.4.0 for `@visx/axis`, 3.12.0 for `@visx/responsive`)
+- React: **18.3.1**
+- Storybook: **8.6.18**
+- Node: 18+
