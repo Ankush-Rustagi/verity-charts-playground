@@ -1,4 +1,3 @@
-{/* MDX formatting: see STORYBOOK-MDX-RULES.md in playground root. Tables must use className="vp-table" JSX. */}
 import { Meta } from '@storybook/blocks';
 
 <Meta title="About" />
@@ -16,24 +15,15 @@ A runnable Storybook that mirrors every customer-facing analytics chart shape in
 
 Core Command is building a **unified AI analytics platform** for Verkada Command. This playground is the visual review surface for **Roadmap Step 3: Verity Data Viz Components** (May 2026), documented in `documentation/20-core-projects/ai-in-command/ai-platform-strategy/12-ai-analytics-roadmap-may2026.md`.
 
-<table className="vp-table">
-  <thead>
-    <tr>
-      <th>Roadmap step</th>
-      <th>Status (May 2026)</th>
-      <th>Relationship to this playground</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr><td>1. Text Filtering</td><td>Shipping</td><td>Separate workstream (NL-to-filter on Verity tables). Not shown here.</td></tr>
-    <tr><td>2. AI Summarization</td><td>Design (Vivien Ding PRD)</td><td>Separate workstream (role/user/group summaries). Not shown here.</td></tr>
-    <tr><td><strong>3A. Verity Data Viz Components</strong></td><td><strong>Planning</strong></td><td><strong>This Storybook.</strong> Audit every Command chart shape, converge on a shared primitive set, prove APIs with live Controls before any team ships real components.</td></tr>
-    <tr><td><strong>3B. First surface in Logs</strong></td><td><strong>Planning</strong></td><td>First production consumer of 3A. Audit Log v1 needs only <code>ColumnChart</code> (with brush-to-zoom) and <code>KPIValue</code> per <code>25-audit-log-v1-chart-spec.md</code>.</td></tr>
-    <tr><td>4. AI Chat and Data Agents in Logs</td><td>Planning</td><td>Layers on Step 3 after components are validated on Logs. Hex-style prompt-to-chart.</td></tr>
-    <tr><td>5. Device Health Analytics (M1)</td><td>Planned</td><td>Reuses the Step 3+4 stack on the admin device listing tab.</td></tr>
-    <tr><td>6. Verity.ai at Verkada One</td><td>Vision</td><td>Platform plus agents adopted beyond Core Command.</td></tr>
-  </tbody>
-</table>
+| Roadmap step | Status (May 2026) | Relationship to this playground |
+|---|---|---|
+| 1. Text Filtering | Shipping | Separate workstream (NL-to-filter on Verity tables). Not shown here. |
+| 2. AI Summarization | Design (Vivien Ding PRD) | Separate workstream (role/user/group summaries). Not shown here. |
+| **3A. Verity Data Viz Components** | **Planning** | **This Storybook.** Audit every Command chart shape, converge on a shared primitive set, prove APIs with live Controls before any team ships real components. |
+| **3B. First surface in Logs** | **Planning** | First production consumer of 3A. Audit Log v1 needs only <code>ColumnChart</code> (with brush-to-zoom) and <code>KPIValue</code> per `25-audit-log-v1-chart-spec.md`. |
+| 4. AI Chat and Data Agents in Logs | Planning | Layers on Step 3 after components are validated on Logs. Hex-style prompt-to-chart. |
+| 5. Device Health Analytics (M1) | Planned | Reuses the Step 3+4 stack on the admin device listing tab. |
+| 6. Verity.ai at Verkada One | Vision | Platform plus agents adopted beyond Core Command. |
 
 **Step 3A approach (from the roadmap):**
 

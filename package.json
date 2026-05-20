@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
+    "verify-mdx": "node scripts/verify-mdx-format.mjs",
+    "build-storybook": "npm run verify-mdx && storybook build",
     "preview-storybook": "vite preview --outDir storybook-static"
   },
   "dependencies": {

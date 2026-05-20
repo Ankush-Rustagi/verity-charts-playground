@@ -1,6 +1,8 @@
 # Verity Charts Playground
 
-- **Last Updated:** May 18, 2026
+**Editing Storybook docs?** Read **[STORYBOOK-MDX-RULES.md](./STORYBOOK-MDX-RULES.md)** first. Pipe markdown tables and some `<code>` patterns break MDX render and CI. Run `npm run verify-mdx` before every push.
+
+- **Last Updated:** May 20, 2026
 - **Owner:** Core Command PM (Ankush Rustagi)
 - **Status:** Active. Companion artifact to the Highcharts feature audit.
 - **Audience:** Verity design system owners, Web platform leads, designers reviewing data viz primitives.
@@ -29,7 +31,8 @@ verity-charts-playground/
 │   ├── utils/
 │   │   └── fakeData.ts            Seeded fake data generators
 │   └── stories/
-│       ├── 00-About.mdx           Section index, coverage table, run instructions
+│       ├── 00-Release-Notes.mdx     Changelog with deep links to stories
+│       ├── 00-About.mdx           Roadmap context, coverage tables, run instructions
 │       ├── 01-highcharts/         All Highcharts surfaces, by chart type
 │       │   ├── 01-columns/
 │       │   ├── 02-lines/
