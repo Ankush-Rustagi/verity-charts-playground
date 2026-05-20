@@ -4,14 +4,21 @@ import { Meta } from '@storybook/blocks';
 
 # Verity Charts Playground
 
-A runnable Storybook that mirrors every customer-facing analytics chart shape in Command, with fake data and source backlinks. Visual companion to:
+A runnable Storybook that mirrors every customer-facing analytics chart shape in Command, with fake data and source backlinks.
+
+- **Last updated:** May 20, 2026
+- **Author:** Vivien Ding (Core Command PM)
+- **Hosted by:** Ankush Rustagi ([portfolio hub](https://ankush-rustagi.github.io/))
+
+Visual companion to:
 
 - `documentation/20-core-projects/ai-in-command/ai-platform-strategy/09-command-chart-inventory.md` (where every chart lives).
 - `documentation/20-core-projects/ai-in-command/ai-platform-strategy/10-highcharts-feature-audit.md` (which Highcharts features the Verity primitive set has to cover).
+- `documentation/20-core-projects/ai-in-command/ai-platform-strategy/27-verity-chart-primitives-design-system.md` (doc-27 color tokens and per-primitive prop contract; drives the simulated primitives in section 03).
 
 ## Top-level structure
 
-Three top-level groups. The first two show production reality; the third shows the audit's recommended abstraction layer.
+Four top-level groups. The first two show production reality; the third shows the audit's recommended abstraction layer with live Controls; the color reference grounds both in doc-27 tokens.
 
 <table className="vp-table">
   <thead>
@@ -23,9 +30,14 @@ Three top-level groups. The first two show production reality; the third shows t
   </thead>
   <tbody>
     <tr>
+      <td><strong>00 Color System</strong></td>
+      <td>Interactive reference for doc-27 palettes: categorical, sequential, diverging, and status tokens (<code>--vc-*</code>, <code>--vs-*</code>, <code>--vd-*</code>).</td>
+      <td>Companion to <code>verity-chart-color-palettes.html</code> and the design system spec.</td>
+    </tr>
+    <tr>
       <td><strong>01 Highcharts</strong></td>
       <td>Every Verity <code>Chart</code> / <code>ChartAdvanced</code> consumer plus the one direct-import (Intercoms). Subgrouped by chart type.</td>
-      <td>57 consumer files in Verkada-Web (per the audit). 16 distinct shapes in the playground.</td>
+      <td>57 consumer files in Verkada-Web (per the audit). 17 distinct shapes in the playground (including cloud-backup pie).</td>
     </tr>
     <tr>
       <td><strong>02 visx</strong></td>
@@ -34,8 +46,8 @@ Three top-level groups. The first two show production reality; the third shows t
     </tr>
     <tr>
       <td><strong>03 Verity Primitives</strong></td>
-      <td>One Story per proposed Verity DataViz primitive component, abstracted away from individual product team implementations. Interactive Controls, annotated prop API, production source mapping.</td>
-      <td>8 primitives (ColumnChart, LineChart, AreaChart, Gauge, ComboTimeSeriesChart, ThresholdEditorChart, Sparkline, ExtendChart escape hatch). Covers 53 of 57 audited files.</td>
+      <td>One Story per proposed Verity DataViz primitive, rendered via <code>VeritySimPrimitives</code> with doc-27 tokens. Interactive Controls, annotated prop API, production source mapping, axis title controls.</td>
+      <td>10 primitive stories: ColumnChart, LineChart, AreaChart, Gauge, ComboTimeSeriesChart, ThresholdEditorChart, Sparkline, PieDonutChart, ScheduleChart, plus ExtendChart escape hatch. Covers 53+ of 57 audited Highcharts files.</td>
     </tr>
   </tbody>
 </table>
@@ -74,12 +86,23 @@ The chart inventory enumerates 19 customer-facing analytics surfaces. The playgr
     <tr><td>17</td><td>Trailer detail power metrics</td><td>Highcharts (Stock)</td><td>01 Highcharts / Combo / Trailer Power</td></tr>
     <tr><td>18</td><td>Live bandwidth sparkline</td><td>visx</td><td>02 visx / Sparklines / Live Bandwidth</td></tr>
     <tr><td>19</td><td>Camera network indicator sparkline</td><td>visx</td><td>02 visx / Sparklines / Camera Network Indicator</td></tr>
+    <tr><td>20</td><td>Camera Stats cloud backup donut</td><td>visx + Highcharts</td><td>02 visx / Pie / Cloud Backup Pie; 01 Highcharts / 04-pie / Camera Stats Cloud Backup; 03 Verity Primitives / PieDonutChart</td></tr>
   </tbody>
 </table>
 
-Plus 5 stories beyond the 19 inventory surfaces that cover important Highcharts shapes from the audit: Sales Conversion (line), Device Metric RSSI (area + zones), Sensor Audio arearange, Participant Status (percent-stacked area), Unite Elapsed Clock (literal gauge), Gateway Navigation Arrows (custom-renderer escape hatch), Camera Stats Battery (visx), Camera Stats Motion Vis (visx bespoke), Cloud Backup Pie (visx custom donut).
+Plus stories beyond the 19 inventory surfaces that cover important shapes from the audit: Sales Conversion (line), Device Metric RSSI (area + zones), Sensor Audio arearange, Participant Status (percent-stacked area), Unite Elapsed Clock (literal gauge), Gateway Navigation Arrows (custom-renderer escape hatch), Camera Stats Battery (visx), Camera Stats Motion Vis (visx bespoke), Cloud Backup Pie (visx custom donut and Highcharts mirror), and the May 2026 primitive additions PieDonutChart and ScheduleChart.
 
-**Story count:** 16 Highcharts + 8 visx + 8 Verity Primitive stories + 2 docs pages = 34 entries.
+**Story count:** 1 color reference + 17 Highcharts + 8 visx + 10 Verity Primitive stories + 2 docs pages (About + Primitives Overview) = 38 entries.
+
+## May 20, 2026 update (Vivien Ding)
+
+This deploy syncs the playground with doc-27 and the latest Command analytics audit work:
+
+- **VeritySimPrimitives:** simulated primitives that translate structured props to Highcharts options using doc-27 color palettes (no raw hex in stories).
+- **New primitives:** <code>PieDonutChart</code> (Camera Stats cloud backup) and <code>ScheduleChart</code> (Alarms AI schedule / xrange).
+- **Color Palette Reference** under <strong>00 Color System</strong>.
+- **Highcharts pie mirror:** Camera Stats cloud-backup pie in <strong>01 Highcharts / 04-pie</strong>.
+- **Axis title controls** on every Verity primitive story; token-aware color refresh across existing Highcharts and visx mirrors.
 
 ## Using the three sections together
 
