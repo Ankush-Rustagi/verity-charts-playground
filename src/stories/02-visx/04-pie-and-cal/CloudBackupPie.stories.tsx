@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Group } from '@visx/group';
+import { PieDonutChart, AfterVerityPanel } from '../../../primitives/VeritySimPrimitives';
 
 const meta: Meta = {
   title: '02 visx/Pie and Calendar/Camera Stats Cloud Backup Pie (custom donut)',
@@ -17,6 +18,7 @@ export default meta;
 type Story = StoryObj;
 
 export const Default: Story = {
+  name: 'Default (visx custom SVG)',
   render: () => {
     const segments = [
       { label: 'Backed up', value: 18.4, color: '#22C55E' },
@@ -84,4 +86,107 @@ export const Default: Story = {
       </div>
     );
   },
+};
+
+type PieAfterArgs = {
+  innerRadius: number;
+  showLabels:  'always' | 'hover' | 'none';
+  showLegend:  boolean;
+  backedUp:    number;
+  pending:     number;
+  failed:      number;
+  skipped:     number;
+};
+
+type AfterVerityStory = StoryObj<PieAfterArgs>;
+
+export const AfterVerityHighcharts: AfterVerityStory = {
+  name: 'After Verity Highcharts: PieDonutChart + status palette',
+  args: {
+    innerRadius: 60,
+    showLabels:  'hover',
+    showLegend:  true,
+    backedUp:    18.4,
+    pending:     2.8,
+    failed:      0.6,
+    skipped:     2.2,
+  },
+  argTypes: {
+    innerRadius: {
+      control: { type: 'range', min: 0, max: 100, step: 1 },
+      description: '`innerRadius` — donut hole size as a 0–100 percentage. `0` = full pie, `60` = standard donut.',
+    },
+    showLabels: {
+      control: 'inline-radio',
+      options: ['always', 'hover', 'none'],
+      description: '`showLabels` — when to render data labels.',
+    },
+    showLegend: { control: 'boolean', description: '`showLegend` — show legend below chart.' },
+    backedUp: { control: { type: 'range', min: 0, max: 100, step: 0.1 }, description: 'Backed up (GB).', table: { category: 'Data' } },
+    pending:  { control: { type: 'range', min: 0, max: 30,  step: 0.1 }, description: 'Pending (GB).',   table: { category: 'Data' } },
+    failed:   { control: { type: 'range', min: 0, max: 10,  step: 0.1 }, description: 'Failed (GB).',    table: { category: 'Data' } },
+    skipped:  { control: { type: 'range', min: 0, max: 20,  step: 0.1 }, description: 'Skipped (GB).',   table: { category: 'Data' } },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Same cloud backup breakdown using a Verity `PieDonutChart`. ' +
+          '`colorPalette="status"` with per-slice `status` keys replaces the raw hex fills — no color literals in consumer code. ' +
+          '`centerLabel` renders total GB in the donut hole via Highcharts subtitle.\n\n' +
+          '**Gap vs. visx:** The visx version uses explicit pad-angle gaps (4°) between segments. ' +
+          'Highcharts approximates this with `borderWidth: 3` and a white border — close but not pixel-identical. ' +
+          'For exact gap fidelity keep the visx implementation; for Verity system parity use this primitive.\n\n' +
+          '**Production source:** Camera Stats — single camera cloud backup (`src/command/ui/camera-page/routes/stats/components/device-analytics/single-camera-cloud-backup/CloudBackupPie.tsx`)',
+      },
+      source: {
+        code: `<PieDonutChart
+  slices={[
+    { name: 'Backed up', y: 18.4, status: 'success' },
+    { name: 'Pending',   y: 2.8,  status: 'warning' },
+    { name: 'Failed',    y: 0.6,  status: 'danger'  },
+    { name: 'Skipped',   y: 2.2,  status: 'neutral' },
+  ]}
+  colorPalette="status"
+  innerRadius="60%"
+  centerLabel="GB total"
+/>`,
+        type: 'code',
+      },
+    },
+  },
+  render: (args) => (
+    <AfterVerityPanel
+      primitiveName="PieDonutChart"
+      consumerCode={`<PieDonutChart
+  slices={[
+    { name: 'Backed up', y: 18.4, status: 'success' },
+    { name: 'Pending',   y: 2.8,  status: 'warning' },
+    { name: 'Failed',    y: 0.6,  status: 'danger'  },
+    { name: 'Skipped',   y: 2.2,  status: 'neutral' },
+  ]}
+  colorPalette="status"
+  innerRadius="60%"
+  centerLabel="GB total"
+/>`}
+      source={{
+        surface: 'Camera Stats — single camera cloud backup',
+        file: 'src/command/ui/camera-page/routes/stats/components/device-analytics/single-camera-cloud-backup/CloudBackupPie.tsx',
+      }}
+    >
+      <PieDonutChart
+        slices={[
+          { name: 'Backed up', y: args.backedUp, status: 'success' },
+          { name: 'Pending',   y: args.pending,  status: 'warning' },
+          { name: 'Failed',    y: args.failed,   status: 'danger'  },
+          { name: 'Skipped',   y: args.skipped,  status: 'neutral' },
+        ].filter((s) => s.y > 0)}
+        colorPalette="status"
+        innerRadius={`${args.innerRadius}%`}
+        showLabels={args.showLabels}
+        showLegend={args.showLegend}
+        centerLabel="GB total"
+      />
+    </AfterVerityPanel>
+  ),
 };

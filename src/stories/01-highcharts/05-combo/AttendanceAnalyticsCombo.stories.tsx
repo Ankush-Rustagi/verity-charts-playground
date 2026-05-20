@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
+import { ComboTimeSeriesChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../../utils/fakeData';
 
 const meta: Meta<typeof PlaygroundChart> = {
@@ -52,6 +53,69 @@ export const Default: Story = {
             { type: 'area', name: 'Checked in', data: checkedIn, color: '#3B82F6' },
           ],
         }}
+      />
+    );
+  },
+};
+
+type ComboAfterArgs = {
+  showLegend:   boolean;
+  tooltip:      'shared-crosshair' | 'point' | 'disabled';
+  colorPalette: ColorPalette;
+  xAxisTitle:   string;
+  yAxisTitle:   string;
+};
+
+type AfterVerityStory = StoryObj<ComboAfterArgs>;
+
+export const AfterVerityHighcharts: AfterVerityStory = {
+  name: 'After Verity Highcharts: ComboTimeSeriesChart + area',
+  args: {
+    showLegend:   false,
+    tooltip:      'shared-crosshair',
+    colorPalette: 'categorical',
+    xAxisTitle:   '',
+    yAxisTitle:   'Participants',
+  },
+  argTypes: {
+    showLegend:   { control: 'boolean', description: 'Show/hide the chart legend.' },
+    tooltip:      { control: 'inline-radio', options: ['shared-crosshair', 'point', 'disabled'], description: 'Tooltip interaction mode.' },
+    colorPalette: { control: 'inline-radio', options: ['categorical', 'status', 'sequential', 'diverging'], description: 'Token-based color palette.' },
+    xAxisTitle:   { control: 'text', description: 'X-axis label.' },
+    yAxisTitle:   { control: 'text', description: 'Y-axis (primary) label.' },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Same chart using a Verity `ComboTimeSeriesChart`. Expected capacity uses `status: "neutral"` (gray band). Checked in falls through to `categorical` palette index 0 (`--vc-1`). No raw hex in consumer code.\n\n**Production source:** Access: Attendance Analytics (`src/command/access/attendance-analytics/AttendanceAnalyticsCombinedChart.tsx`)',
+      },
+      source: {
+        code: `<ComboTimeSeriesChart
+  series={[
+    { name: 'Expected (capacity)', type: 'area', data: expectedData, status: 'neutral', fillOpacity: 0.06 },
+    { name: 'Checked in',          type: 'area', data: checkedInData },
+  ]}
+  tooltip={{ kind: 'shared-crosshair' }}
+/>`,
+        type: 'code',
+      },
+    },
+  },
+  render: (args) => {
+    const checkedIn = fakeTimeSeries({ count: 96, stepMs: 15 * 60 * 1000, base: 40, amplitude: 25, noise: 4, seed: 11 });
+    const expected  = fakeTimeSeries({ count: 96, stepMs: 15 * 60 * 1000, base: 60, amplitude: 18, noise: 2, seed: 22 });
+    return (
+      <ComboTimeSeriesChart
+        series={[
+          { name: 'Expected (capacity)', type: 'area', data: expected   as [number, number][], status: 'neutral', fillOpacity: 0.06 },
+          { name: 'Checked in',          type: 'area', data: checkedIn  as [number, number][] },
+        ]}
+        showLegend={args.showLegend}
+        colorPalette={args.colorPalette}
+        xAxisTitle={args.xAxisTitle}
+        primaryAxis={{ title: args.yAxisTitle }}
+        tooltip={{ kind: args.tooltip }}
       />
     );
   },

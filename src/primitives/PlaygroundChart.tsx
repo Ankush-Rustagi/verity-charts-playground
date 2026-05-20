@@ -23,7 +23,7 @@ export function PlaygroundChart({ options, height = DEFAULT_HEIGHT }: Props) {
   };
   return (
     <div style={wrapperStyle}>
-      <HighchartsReact highcharts={Highcharts} options={merged} />
+      <HighchartsReact highcharts={Highcharts} options={merged} immutable />
     </div>
   );
 }

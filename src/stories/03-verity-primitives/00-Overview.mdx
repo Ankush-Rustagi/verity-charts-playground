@@ -15,7 +15,7 @@ Each primitive Story has the same shape:
 
 This section is intentionally implemented as **annotated replicas, not committed React components**. The Controls bind directly to Highcharts options so the interactivity is real. The annotation panels show how those raw options would translate to a structured Verity prop surface. The goal is to drive the Verity team's component-spec conversation with a concrete artifact, not to ship the primitives prematurely.
 
-## The 8 proposed primitives
+## The 9 proposed primitives
 
 From the audit at `documentation/20-core-projects/ai-in-command/ai-platform-strategy/10-highcharts-feature-audit.md#verity-dataviz-primitive-recommendations`. Together these cover 53 of the 57 customer-facing Highcharts consumer files.
 
@@ -35,6 +35,7 @@ From the audit at `documentation/20-core-projects/ai-in-command/ai-platform-stra
     <tr><td><code>ComboTimeSeriesChart</code></td><td>Stock + multi-axis</td><td>2 files (Attendance, Trailer)</td></tr>
     <tr><td><code>ThresholdEditorChart</code></td><td>spline + plotBands + draggable areasplines</td><td>22 files (entire sensor stack)</td></tr>
     <tr><td><code>Sparkline</code></td><td>minimal area/spline tile</td><td>2 files (Live Bandwidth, Camera Network Indicator)</td></tr>
+    <tr><td><code>PieDonutChart</code></td><td>pie / donut</td><td>1 file (Camera Stats cloud backup); new primitive, no current Highcharts consumers</td></tr>
     <tr><td><code>ExtendChart</code></td><td>escape hatch for <code>chart.renderer.*</code></td><td>2 files (Gateway nav arrows, sensor live-point label)</td></tr>
   </tbody>
 </table>
@@ -61,6 +62,7 @@ Plus 4 files left in the escape hatch by design: Unite Elapsed Clock (literal `g
     <tr><td>16 Connect Box stats</td><td><code>Gauge</code> (3 surfaces)</td></tr>
     <tr><td>17 Trailer detail power metrics</td><td><code>ComboTimeSeriesChart</code></td></tr>
     <tr><td>18, 19 Live bandwidth + Network indicator sparklines</td><td><code>Sparkline</code></td></tr>
+    <tr><td>20 Camera Stats cloud backup donut</td><td><code>PieDonutChart</code> with <code>colorPalette="status"</code> (backed up / pending / failed / skipped → success / warning / danger / neutral)</td></tr>
   </tbody>
 </table>
 

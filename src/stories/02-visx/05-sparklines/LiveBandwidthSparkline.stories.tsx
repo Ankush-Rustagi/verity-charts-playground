@@ -3,6 +3,7 @@ import { Group } from '@visx/group';
 import { scaleLinear, scaleTime } from '@visx/scale';
 import { AreaClosed, LinePath } from '@visx/shape';
 import { curveMonotoneX } from '@visx/curve';
+import { Sparkline, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../../utils/fakeData';
 
 const meta: Meta = {
@@ -19,6 +20,16 @@ const meta: Meta = {
 export default meta;
 
 type Story = StoryObj;
+type SparklineArgs = {
+  type: 'line' | 'area';
+  height: number;
+  width: number;
+  colorPalette: ColorPalette;
+  showLatestValue: boolean;
+  caption: string;
+  unit: string;
+};
+type AfterVerityStory = StoryObj<SparklineArgs>;
 
 export const Default: Story = {
   render: () => {
@@ -62,6 +73,84 @@ export const Default: Story = {
           </Group>
         </svg>
       </div>
+    );
+  },
+};
+
+export const AfterVerityHighcharts: AfterVerityStory = {
+  name: 'After Verity Highcharts: Sparkline (migration from visx)',
+  args: { type: 'area', height: 56, width: 300, colorPalette: 'categorical', showLatestValue: true, caption: 'Live bandwidth', unit: ' Mbps' },
+  argTypes: {
+    type: {
+      control: 'inline-radio',
+      options: ['line', 'area'],
+      description: '`type?: "line" | "area"` — line without fill or filled area',
+      table: { type: { summary: '"line" | "area"' }, defaultValue: { summary: '"area"' } },
+    },
+    colorPalette: {
+      control: 'inline-radio',
+      options: ['categorical', 'sequential', 'diverging', 'status'],
+      description: '`colorPalette?: ColorPalette` — index 0 drives area/line color',
+      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
+    },
+    height: {
+      control: { type: 'range', min: 24, max: 120, step: 4 },
+      description: '`height?: number` (default 56)',
+      table: { type: { summary: 'number' }, defaultValue: { summary: '56' } },
+    },
+    width: {
+      control: { type: 'range', min: 80, max: 480, step: 8 },
+      description: '`width?: number` (default 240)',
+      table: { type: { summary: 'number' }, defaultValue: { summary: '300' } },
+    },
+    showLatestValue: {
+      control: 'boolean',
+      description: '`showEndpoint?: boolean` (spec) — highlights last value',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
+    },
+    caption: {
+      control: 'text',
+      description: '`label: string` — metric name shown above sparkline',
+      table: { type: { summary: 'string' } },
+    },
+    unit: {
+      control: 'text',
+      description: '`unit?: string` — appended after the latest value',
+      table: { type: { summary: 'string' } },
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Same bandwidth tile using a Verity `Sparkline`. `colorPalette="categorical"` gives the area `--vc-1` (brand blue). Card chrome built into the primitive. No hex in consumer code.\n\n**Production source:** Camera Analytics: Live Bandwidth sparkline (`src/command/components/bandwidth-limit/LiveBandwidthChart.tsx`)',
+      },
+      source: {
+        code: `<Sparkline
+  data={bandwidthData}
+  type="area"
+  caption="Live bandwidth"
+  unit=" Mbps"
+  colorPalette="categorical"
+  showLatestValue
+/>`,
+        type: 'code',
+      },
+    },
+  },
+  render: (args) => {
+    const data = fakeTimeSeries({ count: 60, base: 14, amplitude: 6, noise: 2, seed: 77 });
+    return (
+      <Sparkline
+        data={data as [number, number][]}
+        type={args.type}
+        caption={args.caption}
+        unit={args.unit}
+        colorPalette={args.colorPalette}
+        showLatestValue={args.showLatestValue}
+        height={args.height}
+        width={args.width}
+      />
     );
   },
 };

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
+import { Gauge } from '../../../primitives/VeritySimPrimitives';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Gauges/Connect Box (solidgauge donut)',
@@ -78,4 +79,65 @@ export const Default: Story = {
       />
     );
   },
+};
+
+type GaugeAfterArgs = {
+  value:       number;
+  unit:        string;
+  centerLabel: string;
+  warnAt:      number;
+  goodAt:      number;
+  thickness:   'thin' | 'normal' | 'thick';
+  gaugeType:   'solid' | 'arc';
+};
+
+type AfterVerityStory = StoryObj<GaugeAfterArgs>;
+
+export const AfterVerityHighcharts: AfterVerityStory = {
+  name: 'After Verity Highcharts: Gauge + semantic thresholds',
+  args: {
+    value:       73,
+    unit:        '%',
+    centerLabel: 'Camera uptime',
+    warnAt:      50,
+    goodAt:      85,
+    thickness:   'normal',
+    gaugeType:   'solid',
+  },
+  argTypes: {
+    value:       { control: { type: 'range', min: 0, max: 100, step: 1 }, description: 'Current gauge value.' },
+    unit:        { control: 'text', description: 'Unit suffix shown in the center label.' },
+    centerLabel: { control: 'text', description: 'Label text beneath the value in the gauge center.' },
+    warnAt:      { control: { type: 'range', min: 0, max: 100, step: 1 }, description: 'Threshold below which the arc turns warning (yellow).' },
+    goodAt:      { control: { type: 'range', min: 0, max: 100, step: 1 }, description: 'Threshold above which the arc turns success (green).' },
+    thickness:   { control: 'inline-radio', options: ['thin', 'normal', 'thick'], description: 'Arc track thickness.' },
+    gaugeType:   { control: 'inline-radio', options: ['solid', 'arc'],            description: '`solid` fills the arc; `arc` shows a thin ring.' },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Same gauge using a Verity `Gauge` primitive. The `thresholds` prop drives a 3-stop gradient (danger → warning → success) using semantic status tokens — no hex color stops in consumer code.\n\n**Production source:** Connect Box: Camera Uptime Gauge (`src/command/connectors/components/connect-box-stats-page/ConnectBoxGauge.tsx`)',
+      },
+      source: {
+        code: `<Gauge
+  value={73}
+  unit="%"
+  centerLabel="Camera uptime"
+  thresholds={{ warn: 50, good: 85 }}
+/>`,
+        type: 'code',
+      },
+    },
+  },
+  render: (args) => (
+    <Gauge
+      value={args.value}
+      unit={args.unit}
+      centerLabel={args.centerLabel}
+      thickness={args.thickness}
+      gaugeType={args.gaugeType}
+      thresholds={{ warn: args.warnAt, good: args.goodAt }}
+    />
+  ),
 };

@@ -66,6 +66,7 @@ const preview: Preview = {
     options: {
       storySort: {
         order: [
+          '00 Color System',
           'About',
           '01 Highcharts',
           [
@@ -91,6 +92,7 @@ const preview: Preview = {
             'Sparkline',
             'ExtendChart (escape hatch)',
           ],
+          '*',
         ],
       },
     },

@@ -1,13 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { PlaygroundChart } from '../../primitives/PlaygroundChart';
-import { PrimitiveStoryLayout } from '../../primitives/PrimitiveStoryLayout';
+import { Sparkline, type ColorPalette } from '../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../utils/fakeData';
 
 type Args = {
-  shape: 'line' | 'area';
+  type: 'line' | 'area';
   height: number;
   width: number;
-  color: string;
+  colorPalette: ColorPalette;
   showLatestValue: boolean;
   caption: string;
   unit: string;
@@ -20,79 +19,80 @@ const meta: Meta<Args> = {
     docs: {
       description: {
         component:
-          'Proposed Verity primitive for chrome-free, tile-sized time-series visualizations. No axes, no legend, optional latest-value display in the card chrome. Covers items 18 and 19 in the inventory. Today these are visx on production; the primitive could ship as Highcharts or visx internally. The recommendation is whichever the Verity team is happier maintaining; the consumer API is the same either way.',
+          'Proposed Verity primitive for inline mini-charts. Designed to embed in DataTable cells or metric cards. Takes no `BaseChartProps` (no title, no legend, no export). Fixed `width` and `height` props; ignores responsive breakpoints.\n\n' +
+          '**Production sources:** Live Bandwidth (device metrics card); Camera Network Indicator (camera grid cell); Camera Stats Battery (camera detail panel); Gateway Throughput sparkline.\n\n' +
+          '**Design note:** Spec `type` accepts `"line"` or `"column"`. This simulation uses `"line"` and `"area"` because the production uses are all area-style; a column sparkline variant can be added when needed.',
       },
     },
   },
   argTypes: {
-    shape: { control: 'inline-radio', options: ['line', 'area'] },
-    height: { control: { type: 'range', min: 32, max: 120, step: 4 } },
-    width: { control: { type: 'range', min: 120, max: 320, step: 20 } },
-    color: { control: 'color' },
-    showLatestValue: { control: 'boolean' },
-    caption: { control: 'text' },
-    unit: { control: 'text' },
+    type: {
+      control: 'inline-radio',
+      options: ['line', 'area'],
+      description: '`type?: "line" | "area"` — line renders without fill; area renders filled. Spec also reserves `"column"` for future use.',
+      table: { type: { summary: '"line" | "area"' }, defaultValue: { summary: '"area"' } },
+    },
+    colorPalette: {
+      control: 'inline-radio',
+      options: ['categorical', 'sequential', 'diverging', 'status'],
+      description: '`colorPalette?: ColorPalette` — drives the series color from `palette[0]`. Overridden by `status` if set.',
+      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
+    },
+    height: {
+      control: { type: 'range', min: 24, max: 120, step: 4 },
+      description: '`height?: number` (default 56) — fixed pixel height. No responsive override.',
+      table: { type: { summary: 'number' }, defaultValue: { summary: '56' } },
+    },
+    width: {
+      control: { type: 'range', min: 80, max: 480, step: 8 },
+      description: '`width?: number` (default 240) — fixed pixel width. No responsive override.',
+      table: { type: { summary: 'number' }, defaultValue: { summary: '240' } },
+    },
+    showLatestValue: {
+      control: 'boolean',
+      description: '`showEndpoint?: boolean` (spec) — highlights the last data point with a value callout.',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
+    },
+    caption: {
+      control: 'text',
+      description: '`label: string` (sim card wrapper) — shown above the sparkline as the metric name.',
+      table: { type: { summary: 'string' } },
+    },
+    unit: {
+      control: 'text',
+      description: '`unit?: string` — displayed after the latest value.',
+      table: { type: { summary: 'string' } },
+    },
+    trend: {
+      control: false,
+      description: '`trend?: "up" | "down" | "flat"` — auto-computed from data if omitted. Drives directional color on the latest value.',
+      table: { type: { summary: '"up" | "down" | "flat"' }, category: 'Proposed API' },
+    },
+    status: {
+      control: false,
+      description: '`status?: "success" | "warning" | "danger" | "neutral"` — overrides `colorPalette` with a semantic status token.',
+      table: { type: { summary: 'StatusKey' }, category: 'Proposed API' },
+    },
   },
 };
 export default meta;
 
 type Story = StoryObj<Args>;
 
+const DEMO_DATA = fakeTimeSeries({ count: 72, base: 12.8, amplitude: 6, noise: 1.5, seed: 7 });
+
 export const Playground: Story = {
-  args: { shape: 'area', height: 56, width: 240, color: '#22C55E', showLatestValue: true, caption: 'Network signal', unit: '%' },
-  render: (args) => {
-    const data = fakeTimeSeries({ count: 48, base: 18, amplitude: 6, noise: 1.5 });
-    const latest = data[data.length - 1][1];
-    return (
-      <PrimitiveStoryLayout
-        chart={
-          <div style={{ width: args.width, padding: 12, borderRadius: 8, background: '#F9FAFB', fontFamily: 'Inter, sans-serif' }}>
-            {args.showLatestValue ? (
-              <>
-                <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 2 }}>{args.caption}</div>
-                <div style={{ fontSize: 20, fontWeight: 600, color: '#111827', marginBottom: 6 }}>
-                  {latest.toFixed(1)}
-                  {args.unit}
-                </div>
-              </>
-            ) : null}
-            <PlaygroundChart
-              options={{
-                chart: {
-                  type: args.shape === 'line' ? 'spline' : 'areaspline',
-                  backgroundColor: 'transparent',
-                  margin: [0, 0, 0, 0],
-                  spacing: [0, 0, 0, 0],
-                },
-                title: { text: '' },
-                credits: { enabled: false },
-                xAxis: { visible: false, type: 'datetime' },
-                yAxis: { visible: false },
-                legend: { enabled: false },
-                tooltip: { enabled: false },
-                plotOptions: {
-                  spline: { marker: { enabled: false }, lineWidth: 1.5, color: args.color },
-                  areaspline: { fillOpacity: 0.3, lineWidth: 1.5, color: args.color, marker: { enabled: false } },
-                },
-                series: [{ type: args.shape === 'line' ? 'spline' : 'areaspline', name: args.caption, data }],
-              }}
-              height={args.height}
-            />
-          </div>
-        }
-        propsAPI={[
-          { raw: 'chart.type: "spline" | "areaspline"', verityProp: 'shape?: "line" | "area" (default: "area")' },
-          { raw: 'chart height', verityProp: 'height?: number (default: 56)' },
-          { raw: 'series[0].color', verityProp: 'color?: string (default: theme accent)' },
-          { raw: '(card chrome rendered outside chart)', verityProp: 'caption?: string; unit?: string; showLatestValue?: boolean' },
-          { raw: 'tooltip.enabled: false (always)', verityProp: '(no prop; tooltips never apply at this size)' },
-        ]}
-        productionSources={[
-          { surface: 'Live Bandwidth sparkline (Camera Analytics tab)', file: 'src/command/components/bandwidth-limit/LiveBandwidthChart.tsx' },
-          { surface: 'Camera Network Indicator sparkline', file: 'src/command/controllers/video/networkIndicator/CameraNetworkIndicator.tsx' },
-        ]}
-        notes="The card chrome (caption + latest value) is part of the primitive even though it's not part of Highcharts. Keeping them coupled means consumers can't get the chrome wrong. Open question: should the latest-value formatter accept a custom render function for non-numeric units?"
-      />
-    );
-  },
+  args: { type: 'area', colorPalette: 'categorical', height: 56, width: 240, showLatestValue: true, caption: 'Live bandwidth', unit: ' Mbps' },
+  render: (args) => (
+    <Sparkline
+      data={DEMO_DATA}
+      type={args.type}
+      colorPalette={args.colorPalette}
+      height={args.height}
+      width={args.width}
+      showLatestValue={args.showLatestValue}
+      caption={args.caption}
+      unit={args.unit}
+    />
+  ),
 };

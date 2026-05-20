@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { useState, useEffect } from 'react';
 import { PlaygroundChart } from '../../primitives/PlaygroundChart';
-import { PrimitiveStoryLayout } from '../../primitives/PrimitiveStoryLayout';
+import { type ColorPalette, PALETTE_HEX } from '../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries, fakePlotBands } from '../../utils/fakeData';
 
 type Args = {
@@ -9,9 +8,10 @@ type Args = {
   yMax: number;
   initialThresholdHigh: number;
   initialThresholdLow: number;
-  alertBandsCount: number;
-  draggable: boolean;
+  bands: number;
+  editable: boolean;
   unit: string;
+  colorPalette: ColorPalette;
 };
 
 const meta: Meta<Args> = {
@@ -21,18 +21,59 @@ const meta: Meta<Args> = {
     docs: {
       description: {
         component:
-          'Proposed Verity primitive for sensor-style charts with draggable threshold bands and alert event overlays. The single most leveraged primitive in the audit: collapses the entire ~22-file sensor-highcharts/ tree. Drag the colored bands in the chart to change thresholds; the React state above the chart updates in response.',
+          'Proposed Verity primitive for inline threshold editing — drag the colored bands to set warning / danger thresholds, with a touch fallback (slider form). Collapses ~22 sensor detail chart files that currently each manage their own `draggable-points` wiring.\n\n' +
+          '**Production sources:** All Sensors product-line threshold setting UIs — temperature, humidity, TVOC, CO₂, PM2.5, motion sensitivity, audio, RSSI, occupancy.\n\n' +
+          '**Design note:** `editable` maps `dragDrop.draggableY`. Desktop drag uses the `draggable-points` module; touch uses a controlled slider+number-input form to fix the browser-scroll conflict noted in doc 24.',
       },
     },
   },
   argTypes: {
-    yMin: { control: { type: 'number', min: 0, max: 100 } },
-    yMax: { control: { type: 'number', min: 0, max: 200 } },
-    initialThresholdHigh: { control: { type: 'range', min: 0, max: 200, step: 1 } },
-    initialThresholdLow: { control: { type: 'range', min: 0, max: 200, step: 1 } },
-    alertBandsCount: { control: { type: 'range', min: 0, max: 5, step: 1 } },
-    draggable: { control: 'boolean' },
-    unit: { control: 'text' },
+    yMin: {
+      control: { type: 'number' },
+      description: '`valueRange?.min` — y-axis minimum (maps `yAxis.min`).',
+      table: { type: { summary: 'number' }, defaultValue: { summary: '0' } },
+    },
+    yMax: {
+      control: { type: 'number' },
+      description: '`valueRange?.max` — y-axis maximum (maps `yAxis.max`).',
+      table: { type: { summary: 'number' }, defaultValue: { summary: '100' } },
+    },
+    initialThresholdHigh: {
+      control: { type: 'number' },
+      description: '`thresholds.high` — initial value for the high (danger) threshold band.',
+      table: { type: { summary: 'number' } },
+    },
+    initialThresholdLow: {
+      control: { type: 'number' },
+      description: '`thresholds.low` — initial value for the low (warning) threshold band.',
+      table: { type: { summary: 'number' } },
+    },
+    bands: {
+      control: { type: 'range', min: 0, max: 5, step: 1 },
+      description: '`bands?: PlotBand[]` — alert-event plotBands overlaid on the x-axis. Drag slider to add/remove.',
+      table: { type: { summary: 'PlotBand[]' }, defaultValue: { summary: '2' } },
+    },
+    editable: {
+      control: 'boolean',
+      description: '`editable?: boolean` — enables drag-to-edit on threshold bands. Maps `plotOptions.areaspline.dragDrop.draggableY`.',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
+    },
+    unit: {
+      control: 'text',
+      description: '`unit?: string` — y-axis title label suffix (e.g. `"°C"`, `"dB"`, `"%"`).',
+      table: { type: { summary: 'string' } },
+    },
+    colorPalette: {
+      control: 'inline-radio',
+      options: ['categorical', 'sequential', 'diverging', 'status'],
+      description: '`colorPalette?: ColorPalette` (base prop) — drives the data series line color from `palette[0]`.',
+      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
+    },
+    onThresholdChange: {
+      control: false,
+      description: '`onThresholdChange: (thresholds: Threshold[]) => void` — called on each drag-drop and slider change.',
+      table: { type: { summary: '(thresholds: Threshold[]) => void' }, category: 'Proposed API' },
+    },
   },
 };
 export default meta;
@@ -40,88 +81,40 @@ export default meta;
 type Story = StoryObj<Args>;
 
 export const Playground: Story = {
-  args: { yMin: 40, yMax: 100, initialThresholdHigh: 75, initialThresholdLow: 60, alertBandsCount: 2, draggable: true, unit: '°F' },
+  args: { yMin: 0, yMax: 100, initialThresholdHigh: 80, initialThresholdLow: 20, bands: 2, editable: true, unit: '°C', colorPalette: 'categorical' },
   render: (args) => {
-    const [high, setHigh] = useState(args.initialThresholdHigh);
-    const [low, setLow] = useState(args.initialThresholdLow);
-    useEffect(() => setHigh(args.initialThresholdHigh), [args.initialThresholdHigh]);
-    useEffect(() => setLow(args.initialThresholdLow), [args.initialThresholdLow]);
-    const data = fakeTimeSeries({ count: 192, stepMs: 5 * 60 * 1000, base: (args.yMin + args.yMax) / 2, amplitude: 6, noise: 1.5 });
-    const bands = fakePlotBands({ count: args.alertBandsCount });
-    const xMin = data[0][0];
-    const xMax = data[data.length - 1][0];
-    const highBand: [number, number, number][] = [
-      [xMin, high, args.yMax],
-      [xMax, high, args.yMax],
-    ];
-    const lowBand: [number, number, number][] = [
-      [xMin, args.yMin, low],
-      [xMax, args.yMin, low],
-    ];
+    const seriesData = fakeTimeSeries({ count: 144, base: 50, amplitude: 18, noise: 4 });
+    const plotBands  = fakePlotBands({ count: args.bands });
+    const lineColor  = PALETTE_HEX[args.colorPalette][0];
+    const xMin = seriesData[0]?.[0]  ?? Date.now();
+    const xMax = seriesData[seriesData.length - 1]?.[0] ?? Date.now();
+    const highBand: [number, number, number][] = [[xMin, args.initialThresholdHigh, args.yMax], [xMax, args.initialThresholdHigh, args.yMax]];
+    const lowBand:  [number, number, number][] = [[xMin, args.yMin, args.initialThresholdLow],  [xMax, args.yMin, args.initialThresholdLow]];
     return (
-      <PrimitiveStoryLayout
-        chart={
-          <div>
-            <div style={{ marginBottom: 8, fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#374151' }}>
-              {args.draggable ? 'Drag the bands to adjust. ' : 'Drag disabled. '}
-              Current thresholds: <strong>high {high}{args.unit}</strong>, <strong>low {low}{args.unit}</strong>.
-            </div>
-            <PlaygroundChart
-              options={{
-                chart: { type: 'spline' },
-                title: { text: '' },
-                xAxis: { type: 'datetime', crosshair: true, plotBands: bands },
-                yAxis: { min: args.yMin, max: args.yMax, title: { text: args.unit } },
-                legend: { enabled: false },
-                tooltip: { useHTML: true, shared: true, outside: true },
-                plotOptions: {
-                  areaspline: {
-                    fillOpacity: 0.18,
-                    lineWidth: 0,
-                    enableMouseTracking: false,
-                    dragDrop: { draggableY: args.draggable, dragMaxY: args.yMax, dragMinY: args.yMin },
-                    point: {
-                      events: {
-                        drop: function () {
-                          const newY = (this as Highcharts.Point).y;
-                          if (typeof newY !== 'number') return;
-                          const isHigh = (this.series.name || '').includes('high');
-                          if (isHigh) setHigh(Math.round(newY));
-                          else setLow(Math.round(newY));
-                        },
-                      },
-                    },
-                  },
-                  spline: { marker: { enabled: false }, color: '#0EA5E9' },
-                } as Highcharts.PlotOptions,
-                series: [
-                  { type: 'areaspline', name: 'high band', data: highBand, color: '#EF4444' },
-                  { type: 'areaspline', name: 'low band', data: lowBand, color: '#3B82F6' },
-                  { type: 'spline', name: 'Value', data, zIndex: 5 },
-                ],
-              }}
-              height={380}
-            />
-          </div>
-        }
-        propsAPI={[
-          { raw: 'series (3 sub-series: high band, low band, data line)', verityProp: 'value: { series: TimeSeries; thresholds: { high?: number; low?: number } }' },
-          { raw: 'plotOptions.areaspline.dragDrop', verityProp: 'editable?: boolean (default: true)' },
-          { raw: 'point.events.drop', verityProp: 'onThresholdChange?: (next: { high?: number; low?: number }) => void' },
-          { raw: 'xAxis.plotBands', verityProp: 'alertEvents?: { from: Date; to: Date; label?: string; color?: string }[]' },
-          { raw: 'yAxis.min / yAxis.max', verityProp: 'valueRange: { min: number; max: number }' },
-          { raw: 'yAxis.title', verityProp: 'unit: string' },
-        ]}
-        productionSources={[
-          { surface: 'Sensor edit alerts chart (drag thresholds)', file: 'src/command/sensors/components/sensor-edit-alerts/sensor-edit-alerts-chart/SensorEditAlertsChart.tsx' },
-          { surface: 'Sensor detail chart (read-only thresholds)', file: 'src/command/sensors/components/sensor-detail/sensor-detail-chart/SensorDetailChart.tsx' },
-          { surface: 'Sensor detail event chart', file: 'src/command/sensors/components/sensor-detail/sensor-detail-event-chart/SensorDetailEventChart.tsx' },
-          { surface: 'Sensor live chart with investigation overlay', file: 'src/command/sensors/components/sensor-detail/sensor-live-chart/SensorLiveChart.tsx' },
-          { surface: 'Sensor alert card body', file: 'src/command/sensors/components/sensor-detail/sensor-alert-cards/sensor-alert-card/SensorAlertGraphCardBody.tsx' },
-          { surface: 'Sensor alert card body V2', file: 'src/command/sensors/components/sensor-detail/sensor-alert-cards/sensor-alert-card/SensorAlertGraphCardBodyV2.tsx' },
-          { surface: 'Sensor highcharts composer + ~14 hooks', file: 'src/command/sensors/components/sensor-highcharts/' },
-        ]}
-        notes="The single biggest payoff in the entire primitive set. Today the sensor stack lives across ~22 files of hooks that compose Highcharts options. The Verity primitive collapses that to one consumer per sensor surface. The `value` prop is intentionally a single object so it can be passed straight to a React form state without spreading 5 separate props."
+      <PlaygroundChart
+        options={{
+          chart: { type: 'spline' },
+          title: { text: '' },
+          xAxis: { type: 'datetime', crosshair: true, plotBands: plotBands },
+          yAxis: { min: args.yMin, max: args.yMax, title: { text: args.unit } },
+          legend: { enabled: false },
+          tooltip: { useHTML: true, shared: true, outside: true },
+          plotOptions: {
+            areaspline: {
+              fillOpacity: 0.18,
+              lineWidth: 0,
+              enableMouseTracking: false,
+              dragDrop: { draggableY: args.editable, dragMaxY: args.yMax, dragMinY: args.yMin },
+            },
+            spline: { marker: { enabled: false } },
+          } as Highcharts.PlotOptions,
+          series: [
+            { type: 'areaspline', name: 'high band', data: highBand, color: '#EF4444' },
+            { type: 'areaspline', name: 'low band',  data: lowBand,  color: '#F59E0B' },
+            { type: 'spline',     name: 'Sensor',    data: seriesData, color: lineColor, zIndex: 5 },
+          ],
+        }}
+        height={380}
       />
     );
   },

@@ -5,6 +5,7 @@ import { scaleLinear, scaleTime } from '@visx/scale';
 import { LinePath, Circle } from '@visx/shape';
 import { GridRows } from '@visx/grid';
 import { curveMonotoneX } from '@visx/curve';
+import { LineChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../../utils/fakeData';
 
 const meta: Meta = {
@@ -67,6 +68,71 @@ export const Default: Story = {
           <AxisLeft scale={yScale} stroke="#9CA3AF" tickStroke="#9CA3AF" tickLabelProps={() => ({ fill: '#374151', fontSize: 11, textAnchor: 'end', dx: -4, dy: 3 })} label="Mbps" labelProps={{ fill: '#374151', fontSize: 11, textAnchor: 'middle' }} />
         </Group>
       </svg>
+    );
+  },
+};
+
+type LineAfterArgs = {
+  smooth:       boolean;
+  markers:      boolean;
+  showLegend:   boolean;
+  tooltip:      'shared-crosshair' | 'point' | 'disabled';
+  colorPalette: ColorPalette;
+  xAxisTitle:   string;
+  yAxisTitle:   string;
+};
+
+type AfterVerityStory = StoryObj<LineAfterArgs>;
+
+export const AfterVerityHighcharts: AfterVerityStory = {
+  name: 'After Verity Highcharts: LineChart (migration from visx)',
+  args: {
+    smooth:       true,
+    markers:      false,
+    showLegend:   false,
+    tooltip:      'shared-crosshair',
+    colorPalette: 'categorical',
+    xAxisTitle:   '',
+    yAxisTitle:   'Mbps',
+  },
+  argTypes: {
+    smooth:       { control: 'boolean', description: 'Smooth spline interpolation vs. straight line segments.' },
+    markers:      { control: 'boolean', description: 'Show data point markers on the line.' },
+    showLegend:   { control: 'boolean', description: 'Show/hide the chart legend.' },
+    tooltip:      { control: 'inline-radio', options: ['shared-crosshair', 'point', 'disabled'], description: 'Tooltip interaction mode.' },
+    colorPalette: { control: 'inline-radio', options: ['categorical', 'status', 'sequential', 'diverging'], description: 'Token-based color palette.' },
+    xAxisTitle:   { control: 'text', description: 'X-axis label.' },
+    yAxisTitle:   { control: 'text', description: 'Y-axis label.' },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Same throughput line using a Verity `LineChart`. Green (`status: "success"`) semantically signals good throughput. Migrates from visx to Highcharts for parity with the rest of the Gateway detail surface.\n\n**Production source:** Gateways: Detail Chart Throughput (`src/command/gateways/details/common/gatewayChart/GatewayChart.tsx`)',
+      },
+      source: {
+        code: `<LineChart
+  smooth
+  series={[{ name: 'Throughput', data: throughputData, status: 'success' }]}
+  tooltip={{ kind: 'shared-crosshair' }}
+/>`,
+        type: 'code',
+      },
+    },
+  },
+  render: (args) => {
+    const series = fakeTimeSeries({ count: 120, stepMs: 60 * 1000, base: 850, amplitude: 280, noise: 60, seed: 4 });
+    return (
+      <LineChart
+        smooth={args.smooth}
+        markers={args.markers}
+        showLegend={args.showLegend}
+        tooltip={{ kind: args.tooltip }}
+        colorPalette={args.colorPalette}
+        xAxisTitle={args.xAxisTitle}
+        yAxisTitle={args.yAxisTitle}
+        series={[{ name: 'Throughput (Mbps)', data: series as [number, number][], status: 'success' }]}
+      />
     );
   },
 };

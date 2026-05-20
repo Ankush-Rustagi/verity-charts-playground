@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
-import { fakeTimeSeries } from '../../../utils/fakeData';
+import { LineChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
+import { fakeTimeSeries, fakePlotBands } from '../../../utils/fakeData';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Lines and Splines/Sensor Dashboard Tile (chrome-free, disabled tooltip)',
@@ -17,6 +18,18 @@ const meta: Meta<typeof PlaygroundChart> = {
 export default meta;
 
 type Story = StoryObj<typeof PlaygroundChart>;
+type LineArgs = {
+  smooth: boolean;
+  markers: boolean;
+  zones: boolean;
+  bands: number;
+  xAxisTitle: string;
+  yAxisTitle: string;
+  tooltip: 'shared-crosshair' | 'point' | 'disabled';
+  showLegend: boolean;
+  colorPalette: ColorPalette;
+};
+type AfterVerityStory = StoryObj<LineArgs>;
 
 export const Default: Story = {
   render: () => {
@@ -53,6 +66,108 @@ export const Default: Story = {
             },
             series: [{ type: 'spline', name: 'Temp', data }],
           }}
+          height={64}
+        />
+      </div>
+    );
+  },
+};
+
+export const AfterVerityHighcharts: AfterVerityStory = {
+  name: 'After Verity Highcharts: LineChart chromeMinimal',
+  args: { smooth: true, markers: false, zones: false, bands: 0, xAxisTitle: '', yAxisTitle: '', tooltip: 'disabled', showLegend: false, colorPalette: 'categorical' },
+  argTypes: {
+    smooth: {
+      control: 'boolean',
+      description: '`smooth?: boolean` — false = line, true = spline',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
+    },
+    markers: {
+      control: 'boolean',
+      description: '`markers?: boolean`',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
+    },
+    zones: {
+      control: 'boolean',
+      description: '`zones?: ZoneConfig[]` — threshold coloring',
+      table: { type: { summary: 'ZoneConfig[]' }, defaultValue: { summary: 'undefined' } },
+    },
+    bands: {
+      control: { type: 'range', min: 0, max: 5, step: 1 },
+      description: '`bands?: PlotBand[]` — alert-event plotBands',
+      table: { type: { summary: 'PlotBand[]' }, defaultValue: { summary: '0' } },
+    },
+    xAxisTitle: {
+      control: 'text',
+      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`. Hidden in chromeMinimal but wired through.',
+      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
+    },
+    yAxisTitle: {
+      control: 'text',
+      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`. Hidden in chromeMinimal but wired through.',
+      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
+    },
+    tooltip: {
+      control: 'inline-radio',
+      options: ['shared-crosshair', 'point', 'disabled'],
+      description: '`tooltip?: { kind: ... }` (base prop) — disabled = no crosshair/hover dot',
+      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"disabled"' } },
+    },
+    showLegend: {
+      control: 'boolean',
+      description: '`showLegend?: boolean` (base prop)',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
+    },
+    colorPalette: {
+      control: 'inline-radio',
+      options: ['categorical', 'sequential', 'diverging', 'status'],
+      description: '`colorPalette?: ColorPalette` (base prop)',
+      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Same tile using a Verity `LineChart` with `chromeMinimal` preset and `tooltip={{ kind: "disabled" }}`. Color comes from `colorPalette="categorical"`. All raw chart chrome absorbed by the primitive.\n\n**Production source:** Sensors: Dashboard Tile (`src/command/sensors/components/sensor-dashboard/DashboardLineGraphTile.tsx`)',
+      },
+      source: {
+        code: `<LineChart
+  smooth
+  chromeMinimal
+  colorPalette="categorical"
+  series={[{ name: 'Temp', data: tempData }]}
+  tooltip={{ kind: 'disabled' }}
+  height={64}
+/>`,
+        type: 'code',
+      },
+    },
+  },
+  render: (args) => {
+    const data = fakeTimeSeries({ count: 60, stepMs: 60 * 1000, base: 70.5, amplitude: 1.5, noise: 0.4, seed: 33 });
+    const latest = data[data.length - 1][1];
+    const eventBands = fakePlotBands({ count: args.bands });
+    return (
+      <div style={{ width: 260, padding: 16, borderRadius: 12, background: '#FFFFFF', border: '1px solid #E5E7EB' }}>
+        <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 2, fontFamily: 'Inter, sans-serif' }}>
+          Temperature, last hour
+        </div>
+        <div style={{ fontSize: 22, fontWeight: 600, color: '#111827', marginBottom: 8, fontFamily: 'Inter, sans-serif' }}>
+          {latest.toFixed(1)}&deg;F
+        </div>
+        <LineChart
+          smooth={args.smooth}
+          markers={args.markers}
+          colorPalette={args.colorPalette}
+          showLegend={args.showLegend}
+          xAxisTitle={args.xAxisTitle}
+          yAxisTitle={args.yAxisTitle}
+          series={[{ name: 'Temp', data: data as [number, number][] }]}
+          zones={args.zones ? [{ value: 68 }, { value: 72 }, {}] : undefined}
+          bands={eventBands.length > 0 ? eventBands : undefined}
+          tooltip={{ kind: args.tooltip }}
+          chromeMinimal
           height={64}
         />
       </div>

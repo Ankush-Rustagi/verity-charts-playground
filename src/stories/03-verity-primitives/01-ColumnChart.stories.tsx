@@ -1,16 +1,17 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { PlaygroundChart } from '../../primitives/PlaygroundChart';
-import { PrimitiveStoryLayout } from '../../primitives/PrimitiveStoryLayout';
+import { ColumnChart, type ColorPalette } from '../../primitives/VeritySimPrimitives';
 import { fakeColumnSeries } from '../../utils/fakeData';
 
 type Args = {
-  stacked: 'none' | 'normal' | 'percent';
+  stacking: 'normal' | 'percent' | 'none';
   columnDensity: 'tight' | 'normal' | 'loose';
-  borderRadius: number;
-  showCrosshair: boolean;
   axisKind: 'datetime' | 'categorical';
+  xAxisTitle: string;
+  yAxisTitle: string;
   showLegend: boolean;
-  primaryColor: string;
+  tooltip: 'shared-crosshair' | 'point' | 'disabled';
+  dataLabels: boolean;
+  colorPalette: ColorPalette;
 };
 
 const meta: Meta<Args> = {
@@ -20,148 +21,117 @@ const meta: Meta<Args> = {
     docs: {
       description: {
         component:
-          'Proposed Verity primitive for column-shaped time-series and categorical bar charts. Single or multi-series, optional stacking, structured palette. Covers the largest set of customer-facing surfaces (10+ files). Use the Controls panel to toggle stacking, change column density, switch axis kind, or pick a primary color.',
+          'Proposed Verity primitive for column-shaped time-series and categorical bar charts. Single or multi-series, optional stacking, structured palette. Covers the largest set of customer-facing surfaces (10+ files).\n\n' +
+          '**Production sources:** Alerts Trends, Helix Trends, Net Occupancy, Traffic, Queue Length, Queue Wait Time (`src/command/cameras-analytics/`); Intercoms Dashboard stacked; Gateway Uptime datetime; Attendance Analytics avg.\n\n' +
+          '**Design note:** `columnDensity` compresses 14 production files worth of `groupPadding`/`pointPadding` choices into 3 options. Open question: should Intercoms-style stacked-bar with click navigation be `onPointClick` or `onSegmentClick`?',
       },
     },
   },
   argTypes: {
-    stacked: {
+    stacking: {
       control: 'inline-radio',
       options: ['none', 'normal', 'percent'],
-      description: 'Single, additive-stacked, or percent-stacked.',
+      description: '`stacking?: "normal" | "percent" | "none"` — maps `plotOptions.column.stacking`. `"none"` = no stacking.',
+      table: { type: { summary: '"normal" | "percent" | "none"' }, defaultValue: { summary: '"none"' } },
     },
     columnDensity: {
       control: 'inline-radio',
       options: ['tight', 'normal', 'loose'],
-      description: 'Maps to groupPadding/pointPadding presets.',
+      description: '`columnDensity?: "tight" | "normal" | "loose"` — maps `groupPadding + pointPadding` presets.',
+      table: { type: { summary: '"tight" | "normal" | "loose"' }, defaultValue: { summary: '"normal"' } },
     },
-    borderRadius: {
-      control: { type: 'range', min: 0, max: 12, step: 1 },
-      description: 'Column corner radius (px).',
+    axisKind: {
+      control: 'inline-radio',
+      options: ['datetime', 'categorical'],
+      description: '`xAxis: DatetimeAxis | CategoryAxis` — categorical axis required by ~2 production files.',
+      table: { type: { summary: '"datetime" | "categorical"' }, defaultValue: { summary: '"categorical"' } },
     },
-    showCrosshair: { control: 'boolean' },
-    axisKind: { control: 'inline-radio', options: ['datetime', 'categorical'] },
-    showLegend: { control: 'boolean' },
-    primaryColor: { control: 'color' },
+    xAxisTitle: {
+      control: 'text',
+      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`. Maps `xAxis.title.text`.',
+      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
+    },
+    yAxisTitle: {
+      control: 'text',
+      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`. Maps `yAxis.title.text`.',
+      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
+    },
+    showLegend: {
+      control: 'boolean',
+      description: '`showLegend?: boolean` (base prop) — default auto: `true` when >1 series, `false` for single.',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
+    },
+    tooltip: {
+      control: 'inline-radio',
+      options: ['shared-crosshair', 'point', 'disabled'],
+      description: '`tooltip?: { kind: "shared-crosshair" | "point" | "disabled" }` (base prop) — three modes cover all 57 audited Command files.',
+      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"shared-crosshair"' } },
+    },
+    dataLabels: {
+      control: 'boolean',
+      description: '`dataLabels?: boolean` — renders value labels on each bar. Auto-disabled by responsive rule at container widths below 400px.',
+      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
+    },
+    colorPalette: {
+      control: 'inline-radio',
+      options: ['categorical', 'sequential', 'diverging', 'status'],
+      description: '`colorPalette?: "categorical" | "sequential" | "diverging" | "status"` (base prop) — resolves token palette. Categorical: `--vc-1`…`--vc-8`.',
+      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
+    },
+    onBarClick: {
+      control: false,
+      description: '`onBarClick?: (point: ColumnPoint) => void` — maps `point.events.click`.',
+      table: { type: { summary: '(point: ColumnPoint) => void' }, category: 'Proposed API' },
+    },
+    onTimeRangeBrush: {
+      control: false,
+      description: '`onTimeRangeBrush?: (range: { start: Date; end: Date }) => void` — maps `xAxis.events.afterSetExtremes`.',
+      table: { type: { summary: '(range: { start: Date; end: Date }) => void' }, category: 'Proposed API' },
+    },
   },
 };
 export default meta;
 
 type Story = StoryObj<Args>;
 
-const densityMap = {
-  tight: { groupPadding: 0.02, pointPadding: 0 },
-  normal: { groupPadding: 0.1, pointPadding: 0.05 },
-  loose: { groupPadding: 0.25, pointPadding: 0.1 },
-};
-
 export const Playground: Story = {
   args: {
-    stacked: 'none',
+    stacking: 'none',
     columnDensity: 'normal',
-    borderRadius: 4,
-    showCrosshair: true,
     axisKind: 'categorical',
-    showLegend: false,
-    primaryColor: '#3B82F6',
+    xAxisTitle: 'Category',
+    yAxisTitle: 'Count',
+    showLegend: true,
+    tooltip: 'shared-crosshair',
+    dataLabels: false,
+    colorPalette: 'categorical',
   },
   render: (args) => {
     const { categories, values } = fakeColumnSeries({ count: 12, seed: 5 });
     const secondSeries = values.map((v) => Math.round(v * 0.4));
-    const thirdSeries = values.map((v) => Math.round(v * 0.25));
-    const isStacked = args.stacked !== 'none';
-    const density = densityMap[args.columnDensity];
-    const datetimeData = (vals: number[]) => vals.map((v, i) => [Date.UTC(2026, 4, 1, i * 2), v]);
+    const thirdSeries  = values.map((v) => Math.round(v * 0.25));
+    const datetimeData = (vals: number[]): [number, number][] =>
+      vals.map((v, i) => [Date.UTC(2026, 4, 1, i * 2), v]);
+    const primaryData   = args.axisKind === 'datetime' ? datetimeData(values)       : values;
+    const secondaryData = args.axisKind === 'datetime' ? datetimeData(secondSeries) : secondSeries;
+    const tertiaryData  = args.axisKind === 'datetime' ? datetimeData(thirdSeries)  : thirdSeries;
     return (
-      <PrimitiveStoryLayout
-        chart={
-          <PlaygroundChart
-            options={{
-              chart: { type: 'column' },
-              title: { text: '' },
-              xAxis:
-                args.axisKind === 'categorical'
-                  ? { categories, crosshair: args.showCrosshair }
-                  : { type: 'datetime', crosshair: args.showCrosshair },
-              yAxis: { min: 0, title: { text: 'Count' } },
-              legend: { enabled: args.showLegend, align: 'center', verticalAlign: 'bottom' },
-              tooltip: { useHTML: true, shared: true, outside: true },
-              plotOptions: {
-                column: {
-                  stacking: args.stacked === 'none' ? undefined : args.stacked,
-                  borderRadius: args.borderRadius,
-                  groupPadding: density.groupPadding,
-                  pointPadding: density.pointPadding,
-                },
-              },
-              series: isStacked
-                ? [
-                    {
-                      type: 'column',
-                      name: 'Primary',
-                      data: args.axisKind === 'categorical' ? values : datetimeData(values),
-                      color: args.primaryColor,
-                    },
-                    {
-                      type: 'column',
-                      name: 'Secondary',
-                      data: args.axisKind === 'categorical' ? secondSeries : datetimeData(secondSeries),
-                      color: '#9CA3AF',
-                    },
-                    {
-                      type: 'column',
-                      name: 'Tertiary',
-                      data: args.axisKind === 'categorical' ? thirdSeries : datetimeData(thirdSeries),
-                      color: '#F59E0B',
-                    },
-                  ]
-                : [
-                    {
-                      type: 'column',
-                      name: 'Value',
-                      data: args.axisKind === 'categorical' ? values : datetimeData(values),
-                      color: args.primaryColor,
-                    },
-                  ],
-            }}
-          />
-        }
-        propsAPI={[
-          { raw: 'chart.type: "column"', verityProp: '(implicit, primitive name is ColumnChart)' },
-          { raw: 'plotOptions.column.stacking', verityProp: 'stacked?: "none" | "normal" | "percent"' },
-          {
-            raw: 'plotOptions.column.borderRadius',
-            verityProp: 'columnStyle?: { rounded?: boolean }',
-            note: 'Constants: rounded=true maps to 4px, false maps to 0.',
-          },
-          {
-            raw: 'plotOptions.column.groupPadding + pointPadding',
-            verityProp: 'columnDensity?: "tight" | "normal" | "loose"',
-            note: 'Three presets cover every observed value pair in production.',
-          },
-          {
-            raw: 'xAxis.type: "datetime" | xAxis.categories',
-            verityProp: 'xAxis: { kind: "datetime" } | { kind: "category", categories }',
-            note: 'Categorical axis required by only 2 production files (Intercoms, Attendance avg).',
-          },
-          { raw: 'xAxis.crosshair', verityProp: 'showCrosshair?: boolean (default: true)' },
-          { raw: 'legend.enabled', verityProp: 'legend?: "hidden" | "bottom" | "inline" (default: hidden)' },
-          { raw: 'series[].color', verityProp: 'palette?: VerityChartPalette | string[]' },
-          { raw: 'tooltip.formatter (HTML+React)', verityProp: 'tooltip?: { kind: "shared-crosshair"; render: (points) => ReactNode }' },
-          { raw: 'point.events.click', verityProp: 'onPointClick?: (point) => void' },
+      <ColumnChart
+        axisKind={args.axisKind}
+        categories={args.axisKind === 'categorical' ? categories : undefined}
+        stacking={args.stacking}
+        columnDensity={args.columnDensity}
+        xAxisTitle={args.xAxisTitle}
+        yAxisTitle={args.yAxisTitle}
+        showLegend={args.showLegend}
+        tooltip={{ kind: args.tooltip }}
+        dataLabels={args.dataLabels}
+        colorPalette={args.colorPalette}
+        series={[
+          { name: 'Primary',   data: primaryData },
+          { name: 'Secondary', data: secondaryData },
+          { name: 'Tertiary',  data: tertiaryData },
         ]}
-        productionSources={[
-          { surface: 'Cameras Analytics: Alerts Trends', file: 'src/command/cameras-analytics/components/alerts-trends/AlertsTrendsChart.tsx' },
-          { surface: 'Cameras Analytics: Helix Trends', file: 'src/command/cameras-analytics/components/helix-trends-widget/HelixTrendsChart.tsx' },
-          { surface: 'Cameras Analytics: Net Occupancy', file: 'src/command/cameras-analytics/components/occupancy-trends-widget/NetOccupancyChart.tsx' },
-          { surface: 'Cameras Analytics: Traffic', file: 'src/command/cameras-analytics/components/occupancy-trends-widget/TrafficChart.tsx' },
-          { surface: 'Cameras Analytics: Queue Length', file: 'src/command/cameras-analytics/components/queue-times-widget/QueueLengthChart.tsx' },
-          { surface: 'Cameras Analytics: Queue Wait Time', file: 'src/command/cameras-analytics/components/queue-times-widget/QueueWaitTimeChart.tsx' },
-          { surface: 'Intercoms Dashboard (stacked)', file: 'src/command/intercoms/pages/dashboard/DashboardBarGraph.tsx' },
-          { surface: 'Gateway Uptime (stacked, datetime)', file: 'src/command/gateways/details/common/gatewayHighcharts/GatewayHighchartsUptime.tsx' },
-          { surface: 'Attendance Analytics (average view)', file: 'src/command/access/attendance-analytics/AttendanceAnalyticsCombinedChart.tsx' },
-        ]}
-        notes="The columnDensity preset compresses 14 production files worth of groupPadding/pointPadding choices into 3 options. If a team needs a custom spacing they're not on the happy path; that's intentional. Open question: should Intercoms-style stacked-bar with click navigation be `onPointClick` or `onSegmentClick`?"
       />
     );
   },
