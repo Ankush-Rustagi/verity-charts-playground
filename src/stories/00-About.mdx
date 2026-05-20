@@ -9,11 +9,40 @@ A runnable Storybook that mirrors every customer-facing analytics chart shape in
 - **Last updated:** May 20, 2026
 - **Author:** Vivien Ding (Core Command PM)
 - **Hosted by:** Ankush Rustagi ([portfolio hub](https://ankush-rustagi.github.io/))
+- **Changelog:** <a href="?path=/docs/release-notes--docs">Release Notes</a> (linked entries for every May 2026 change)
+
+## Why this exists (AI Analytics Platform Roadmap)
+
+Core Command is building a **unified AI analytics platform** for Verkada Command. This playground is the visual review surface for **Roadmap Step 3: Verity Data Viz Components** (May 2026), documented in `documentation/20-core-projects/ai-in-command/ai-platform-strategy/12-ai-analytics-roadmap-may2026.md`.
+
+| Roadmap step | Status (May 2026) | Relationship to this playground |
+|---|---|---|
+| 1. Text Filtering | Shipping | Separate workstream (NL-to-filter on Verity tables). Not shown here. |
+| 2. AI Summarization | Design (Vivien Ding PRD) | Separate workstream (role/user/group summaries). Not shown here. |
+| **3A. Verity Data Viz Components** | **Planning** | **This Storybook.** Audit every Command chart shape, converge on a shared primitive set, prove APIs with live Controls before any team ships real components. |
+| **3B. First surface in Logs** | **Planning** | First production consumer of 3A. Audit Log v1 needs only <code>ColumnChart</code> (with brush-to-zoom) and <code>KPIValue</code> per `25-audit-log-v1-chart-spec.md`. |
+| 4. AI Chat and Data Agents in Logs | Planning | Layers on Step 3 after components are validated on Logs. Hex-style prompt-to-chart. |
+| 5. Device Health Analytics (M1) | Planned | Reuses the Step 3+4 stack on the admin device listing tab. |
+| 6. Verity.ai at Verkada One | Vision | Platform plus agents adopted beyond Core Command. |
+
+**Step 3A approach (from the roadmap):**
+
+1. Audit every existing dashboard and analytics surface across Command products.
+2. Identify the superset of P0 and P1 chart functionality.
+3. Build the Verity data viz component library that covers that superset (chart types, filter bars, tables, layout).
+4. One library every team reuses instead of bespoke analytics UIs per product.
+
+**What this playground proves before Logs ships:** chart primitives cover real production shapes (Highcharts, visx, and proposed Verity props), designers can pressure-test doc-27 tokens and APIs interactively, and gaps in the audit are visible without opening scattered production URLs.
+
+**Parallel tracks:** Core Command Web owns components and surfaces (this work). Core Command AI Eng owns agents and SQL/chart spec (Steps 4+). Both must land for the full platform; this artifact de-risks the frontend primitive contract first.
 
 Visual companion to:
 
-- `documentation/20-core-projects/ai-in-command/ai-platform-strategy/09-command-chart-inventory.md` (where every chart lives).
-- `documentation/20-core-projects/ai-in-command/ai-platform-strategy/10-highcharts-feature-audit.md` (which Highcharts features the Verity primitive set has to cover).
+- `documentation/20-core-projects/ai-in-command/ai-platform-strategy/12-ai-analytics-roadmap-may2026.md` (canonical platform sequencing; Step 3 context above).
+- `documentation/20-core-projects/ai-in-command/ai-platform-strategy/22-command-chart-inventory.md` (where every chart lives in Command).
+- `documentation/20-core-projects/ai-in-command/ai-platform-strategy/23-highcharts-feature-audit.md` (Highcharts capability map and 7-primitive core recommendation).
+- `documentation/20-core-projects/ai-in-command/ai-platform-strategy/24-verity-dataviz-strategy.md` (11-primitive expansion, mobile ship gate, migration pitch).
+- `documentation/20-core-projects/ai-in-command/ai-platform-strategy/25-audit-log-v1-chart-spec.md` (Logs v1: ColumnChart + KPIValue only).
 - `documentation/20-core-projects/ai-in-command/ai-platform-strategy/27-verity-chart-primitives-design-system.md` (doc-27 color tokens and per-primitive prop contract; drives the simulated primitives in section 03).
 
 ## Top-level structure
@@ -92,17 +121,9 @@ The chart inventory enumerates 19 customer-facing analytics surfaces. The playgr
 
 Plus stories beyond the 19 inventory surfaces that cover important shapes from the audit: Sales Conversion (line), Device Metric RSSI (area + zones), Sensor Audio arearange, Participant Status (percent-stacked area), Unite Elapsed Clock (literal gauge), Gateway Navigation Arrows (custom-renderer escape hatch), Camera Stats Battery (visx), Camera Stats Motion Vis (visx bespoke), Cloud Backup Pie (visx custom donut and Highcharts mirror), and the May 2026 primitive additions PieDonutChart and ScheduleChart.
 
-**Story count:** 1 color reference + 17 Highcharts + 8 visx + 10 Verity Primitive stories + 2 docs pages (About + Primitives Overview) = 38 entries.
+**Story count:** 1 color reference + 17 Highcharts + 8 visx + 10 Verity Primitive stories + 3 docs pages (Release Notes, About, Primitives Overview) = 39 entries.
 
-## May 20, 2026 update (Vivien Ding)
-
-This deploy syncs the playground with doc-27 and the latest Command analytics audit work:
-
-- **VeritySimPrimitives:** simulated primitives that translate structured props to Highcharts options using doc-27 color palettes (no raw hex in stories).
-- **New primitives:** <code>PieDonutChart</code> (Camera Stats cloud backup) and <code>ScheduleChart</code> (Alarms AI schedule / xrange).
-- **Color Palette Reference** under <strong>00 Color System</strong>.
-- **Highcharts pie mirror:** Camera Stats cloud-backup pie in <strong>01 Highcharts / 04-pie</strong>.
-- **Axis title controls** on every Verity primitive story; token-aware color refresh across existing Highcharts and visx mirrors.
+**Recent changes:** see <a href="?path=/docs/release-notes--docs">Release Notes</a> for dated changelog rows with direct links to each story.
 
 ## Using the sections together
 

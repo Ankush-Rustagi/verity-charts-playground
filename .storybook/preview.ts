@@ -66,14 +66,16 @@ const preview: Preview = {
     options: {
       storySort: {
         order: [
-          '00 Color System',
+          'Release Notes',
           'About',
+          '00 Color System',
           '01 Highcharts',
           [
             'Columns',
             'Lines and Splines',
             'Areas',
             'Gauges',
+            'Pie',
             'Combo and Stock',
             'Threshold Editor',
             'Custom Renderer',
@@ -90,6 +92,8 @@ const preview: Preview = {
             'ComboTimeSeriesChart',
             'ThresholdEditorChart',
             'Sparkline',
+            'PieDonutChart',
+            'ScheduleChart',
             'ExtendChart (escape hatch)',
           ],
           '*',

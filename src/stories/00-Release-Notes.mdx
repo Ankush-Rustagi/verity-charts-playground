@@ -1,0 +1,99 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Release Notes" />
+
+# Release Notes
+
+Changelog for the hosted playground. Each row links directly to the story or doc that changed.
+
+**Author:** Vivien Ding (Core Command PM). **Hosted by:** [Ankush Rustagi portfolio hub](https://ankush-rustagi.github.io/).
+
+Also see the <a href="?path=/docs/about--docs">About</a> page for roadmap context and coverage tables.
+
+---
+
+## May 20, 2026
+
+Sync with doc-27 (Verity Chart Primitives Design System) and the Command analytics audit. Playground build: **38 entries** (see About for full inventory).
+
+<table className="vp-table">
+  <thead>
+    <tr>
+      <th>Change</th>
+      <th>Where to look</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>VeritySimPrimitives</strong> layer: simulated primitives with doc-27 <code>colorPalette</code> tokens (categorical, sequential, diverging, status)</td>
+      <td>Any story under <strong>03 Verity Primitives</strong>; implementation in <code>src/primitives/VeritySimPrimitives.tsx</code></td>
+    </tr>
+    <tr>
+      <td><strong>Color Palette Reference</strong> (new section)</td>
+      <td><a href="?path=/story/00-color-system-palette-reference--default">00 Color System / Palette Reference</a></td>
+    </tr>
+    <tr>
+      <td><strong>PieDonutChart</strong> primitive (cloud backup donut, status semantic slices)</td>
+      <td><a href="?path=/story/03-verity-primitives-piedonutchart--playground">03 Verity Primitives / PieDonutChart</a></td>
+    </tr>
+    <tr>
+      <td><strong>ScheduleChart</strong> primitive (Alarms AI schedule, xrange / Gantt-lite)</td>
+      <td><a href="?path=/story/03-verity-primitives-schedulechart--playground">03 Verity Primitives / ScheduleChart</a> (compare production visx: <a href="?path=/story/02-visx-schedules-alarms-ai-schedule-horizontal-bars--default">02 visx / Alarms AI Schedule</a>)</td>
+    </tr>
+    <tr>
+      <td><strong>Highcharts pie mirror</strong> for Camera Stats cloud backup</td>
+      <td><a href="?path=/story/01-highcharts-pie-camera-stats-cloud-backup-donut--default">01 Highcharts / Pie / Camera Stats Cloud Backup</a></td>
+    </tr>
+    <tr>
+      <td><strong>Axis title controls</strong> on all Verity primitive stories</td>
+      <td><a href="?path=/story/03-verity-primitives-linechart--playground">LineChart</a>, <a href="?path=/story/03-verity-primitives-columnchart--playground">ColumnChart</a>, <a href="?path=/story/03-verity-primitives-areachart--playground">AreaChart</a>, and siblings in 03</td>
+    </tr>
+    <tr>
+      <td><strong>Token-aware color refresh</strong> across existing Highcharts and visx mirrors</td>
+      <td>All stories in <a href="?path=/story/01-highcharts-columns-alerts-trends-cameras-analytics--default">01 Highcharts</a> and <a href="?path=/story/02-visx-sparklines-live-bandwidth-sparkline-camera-analytics-tab--default">02 visx</a> (spot-check any production mirror)</td>
+    </tr>
+    <tr>
+      <td><strong>About page</strong> expanded with roadmap context and Vivien Ding credit</td>
+      <td><a href="?path=/docs/about--docs">About</a></td>
+    </tr>
+  </tbody>
+</table>
+
+**Companion docs (docs-vibes):** `27-verity-chart-primitives-design-system.md`, `23-highcharts-feature-audit.md`, `24-verity-dataviz-strategy.md`.
+
+---
+
+## May 19, 2026
+
+Initial public deploy: production-faithful **01 Highcharts** and **02 visx** mirrors, **03 Verity Primitives** annotated replicas (8 primitives), and docs (About + Primitives Overview).
+
+<table className="vp-table">
+  <thead>
+    <tr>
+      <th>Milestone</th>
+      <th>Where to look</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>First hosted Storybook on GitHub Pages</td>
+      <td><a href="?path=/docs/about--docs">About</a>, <a href="?path=/docs/03-verity-primitives-overview--docs">03 Verity Primitives / Overview</a></td>
+    </tr>
+    <tr>
+      <td>Highcharts + visx coverage for Command chart inventory</td>
+      <td><a href="?path=/story/01-highcharts-columns-alerts-trends-cameras-analytics--default">Alerts Trends</a> (columns), <a href="?path=/story/02-visx-sparklines-camera-network-indicator-live-tile--default">Camera Network Indicator</a> (sparklines)</td>
+    </tr>
+    <tr>
+      <td>Annotated primitive set (ColumnChart through ExtendChart)</td>
+      <td><a href="?path=/story/03-verity-primitives-columnchart--playground">ColumnChart</a>, <a href="?path=/story/03-verity-primitives-thresholdeditorchart--playground">ThresholdEditorChart</a></td>
+    </tr>
+  </tbody>
+</table>
+
+---
+
+## How to read these notes
+
+1. Start here when you need to know **what changed** and **which story to open**.
+2. Open <a href="?path=/docs/about--docs">About</a> for **why the playground exists** (AI Analytics Platform Roadmap, Step 3) and full coverage matrices.
+3. Use **01 Highcharts** vs **03 Verity Primitives** side by side for design review (production today vs proposed primitive API).
