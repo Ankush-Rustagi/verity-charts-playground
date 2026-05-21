@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import { CHART_FONT_FAMILY } from './chartColors';
 
 type OptionAnnotation = {
   raw: string;
@@ -23,7 +24,7 @@ const wrapperStyle: CSSProperties = {
   gridTemplateColumns: 'minmax(0, 1fr) 360px',
   gap: 24,
   alignItems: 'flex-start',
-  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+  fontFamily: CHART_FONT_FAMILY,
   fontSize: 13,
   color: '#111827',
 };

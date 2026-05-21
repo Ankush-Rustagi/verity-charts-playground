@@ -1,3 +1,4 @@
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Group } from '@visx/group';
 import { scaleLinear, scaleTime } from '@visx/scale';
@@ -51,7 +52,7 @@ export const Default: Story = {
     };
     const barW = innerWidth / data.length - 1;
     return (
-      <svg width={width} height={height} style={{ background: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}>
+      <svg width={width} height={height} style={{ background: '#FFFFFF', fontFamily: CHART_FONT_FAMILY }}>
         <Group left={margin.left} top={margin.top}>
           {data.map((d, i) => (
             <Bar
@@ -98,18 +99,19 @@ export const Default: Story = {
 const seededNoise = (i: number) => ((Math.sin(i * 2.3) * 0.5 + 0.5) * 0.3);
 
 type MotionAfterArgs = {
-  colorPalette: ColorPalette;
-  numBuckets:   2 | 4 | 8;
-  tooltip:      'enabled' | 'disabled';
+  colorPalette:     ColorPalette;
+  bucketThresholds: number[];
+  tooltip:          'enabled' | 'disabled';
 };
 type AfterVerityStory = StoryObj<MotionAfterArgs>;
 
 export const AfterVerityHighcharts: AfterVerityStory = {
   name: 'After Verity Highcharts: MotionVis via column + per-point color',
   args: {
-    colorPalette: 'sequential',
-    numBuckets:   4,
-    tooltip:      'enabled',
+    colorPalette:     'sequential',
+    // 7 thresholds → 8 buckets, matching production boundaries (0.2, 0.45, 0.7 from Default story)
+    bucketThresholds: [0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875],
+    tooltip:          'enabled',
   },
   argTypes: {
     colorPalette: {
@@ -118,11 +120,13 @@ export const AfterVerityHighcharts: AfterVerityStory = {
       description: '`colorPalette?: ColorPalette` — palette applied to intensity buckets. `sequential` (light→dark blue) is the natural fit for motion intensity data.',
       table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"sequential"' } },
     },
-    numBuckets: {
-      control: 'inline-radio',
-      options: [2, 4, 8],
-      description: '`numBuckets?: 2 | 4 | 8` — number of color buckets mapped across the 0–1 intensity range.',
-      table: { type: { summary: '2 | 4 | 8' }, defaultValue: { summary: '4' } },
+    bucketThresholds: {
+      control: 'object',
+      description:
+        '`bucketThresholds: number[]` — sorted array of 0–1 intensity boundaries. ' +
+        'N thresholds create N+1 buckets, each mapped to a palette color. ' +
+        'Example: `[0.2, 0.45, 0.7]` → 4 buckets matching the original visx production colors.',
+      table: { type: { summary: 'number[]' }, defaultValue: { summary: '[0.125, 0.25, …, 0.875]' } },
     },
     tooltip: {
       control: 'inline-radio',
@@ -143,7 +147,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
         code: `<HeatmapColumnChart
   data={motionData}        // [{ t: timestamp, value: 0–1 }]
   colorPalette="sequential"
-  numBuckets={4}
+  bucketThresholds={[0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875]}
   tooltip={{ kind: 'enabled' }}
 />`,
         type: 'code',
@@ -153,16 +157,19 @@ export const AfterVerityHighcharts: AfterVerityStory = {
   render: (args) => {
     const start = new Date('2026-05-15T00:00:00Z').getTime();
     const palette = PALETTE_HEX[args.colorPalette];
+    const thresholds = [...args.bucketThresholds].sort((a, b) => a - b);
+    const numBuckets = thresholds.length + 1;
     const seriesData: Highcharts.PointOptionsObject[] = [];
     for (let i = 0; i < 144; i++) {
       const t = start + i * 10 * 60 * 1000;
       const hour = Math.floor((i * 10) / 60);
       const dayPeak = Math.max(0, Math.sin(((hour - 4) * Math.PI) / 18));
       const intensity = Math.min(1, dayPeak + seededNoise(i));
-      const bucketIdx = Math.min(args.numBuckets - 1, Math.floor(intensity * args.numBuckets));
-      // Scale bucket index linearly across the full palette so the highest
-      // bucket always maps to the darkest color, regardless of numBuckets.
-      const paletteIdx = Math.round((bucketIdx / Math.max(1, args.numBuckets - 1)) * (palette.length - 1));
+      // Find which bucket this intensity falls into based on user-defined thresholds.
+      const bucketIdx = thresholds.findIndex((t) => intensity < t);
+      const resolvedBucket = bucketIdx === -1 ? numBuckets - 1 : bucketIdx;
+      // Map bucket linearly across the full palette length.
+      const paletteIdx = Math.round((resolvedBucket / Math.max(1, numBuckets - 1)) * (palette.length - 1));
       seriesData.push({ x: t, y: intensity, color: palette[paletteIdx] });
     }
     return (
@@ -215,6 +222,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
           series: [{ type: 'column', name: 'Motion intensity', data: seriesData }],
           credits: { enabled: false },
         }}
+        height={200}
       />
     );
   },

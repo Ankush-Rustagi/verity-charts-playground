@@ -5,19 +5,19 @@ import {
   type PlotBand,
   type ZoneConfig,
   PALETTE_HEX,
+  toHCPlotBands,
 } from '../../primitives/VeritySimPrimitives';
-import { fakeTimeSeries } from '../../utils/fakeData';
+import { fakeTimeSeries, fakePlotBands } from '../../utils/fakeData';
+import { LINE_ARG_TYPES } from '../argTypes';
 
-// Series starts at 2026-05-01T08:00:00Z = 1746086400000.
-// Band timestamps are offsets from that anchor so defaults are visible in the chart.
-const DEMO_BANDS: PlotBand[] = [
-  { from: 1746090000000, to: 1746092700000, color: 'rgba(239,68,68,0.15)',   label: 'Alert: motion'    },
-  { from: 1746104400000, to: 1746111600000, color: 'rgba(245,158,11,0.12)',  label: 'Alert: temp high' },
-];
+// fakePlotBands defaults: start=2026-05-01T09:00:00Z, 3 bands, 4h spacing, 45min width.
+// fakeTimeSeries starts at 2026-05-01T08:00:00Z with 144 points × 15 min = ~36h.
+// All three bands fall within the visible range.
+const DEMO_X_BANDS: PlotBand[] = fakePlotBands();
 
-// Zones partition the y-axis (data around base 68, range ~52–88).
-// Omit `color` to let the colorPalette drive zone coloring.
-const DEMO_ZONES: ZoneConfig[] = [
+// Y-zones partition the y-axis (data around base 68, range ~52–88).
+// Omit `color` to let colorPalette drive zone coloring.
+const DEMO_Y_ZONES: ZoneConfig[] = [
   { value: 60 },   // ≤ 60 → zone 0 (danger with status palette)
   { value: 74 },   // 60–74 → zone 1 (warning with status palette)
   {},              // > 74  → zone 2 (success with status palette)
@@ -26,8 +26,8 @@ const DEMO_ZONES: ZoneConfig[] = [
 type Args = {
   smooth:       boolean;
   markers:      boolean;
-  bands:        PlotBand[];
-  zones:        ZoneConfig[];
+  xBands:       PlotBand[];
+  yZones:       ZoneConfig[];
   xAxisTitle:   string;
   yAxisTitle:   string;
   tooltip:      'shared-crosshair' | 'point' | 'disabled';
@@ -42,71 +42,19 @@ const meta: Meta<Args> = {
     docs: {
       description: {
         component:
-          'Proposed Verity primitive for line / spline time-series. Single or multi-series, optional zones for threshold coloring, optional `bands` (alert-event plotBands) and threshold `plotLines`, three tooltip modes.\n\n' +
+          'Proposed Verity primitive for line / spline time-series. Single or multi-series, optional `yZones` for y-value threshold coloring, optional `xBands` (alert-event background overlays) and `thresholds` (plotLines), three tooltip modes.\n\n' +
+          '**`xBands` vs `yZones`:** `xBands` shade a background rectangle over a *time range* on the x-axis (e.g. alert events). `yZones` re-color the line itself as it crosses a *data value* on the y-axis (e.g. temp danger threshold). Set `colorPalette="status"` to activate semantic token coloring for zones.\n\n' +
           '**Production sources:** Sales Conversion (`cameras-analytics`); Sensor Default Detail Chart; Alarms Wireless RSSI; Sensor Dashboard Tile (chrome-free); Gateway Historical GPS.\n\n' +
-          '**Design note:** Open question — should `zones` and `thresholds` be the same prop? They serve adjacent purposes (color the data vs. annotate the axis) but in practice they\'re usually configured together.',
+          '**Design note:** Open question — should `yZones` and `thresholds` be the same prop? They serve adjacent purposes (color the data vs. annotate the axis) but in practice they\'re usually configured together.',
       },
     },
   },
   argTypes: {
-    smooth: {
-      control: 'boolean',
-      description: '`smooth?: boolean` — `false` = straight `line` type, `true` = `spline`. Maps `chart.type`.',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    markers: {
-      control: 'boolean',
-      description: '`markers?: boolean` — shows data-point dots. Maps `plotOptions.[curve].marker.enabled`.',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    bands: {
-      control: 'object',
-      description:
-        '`bands?: PlotBand[]` — `{ from, to, color, label? }` time-range overlays on the x-axis. ' +
-        '`from`/`to` are Unix timestamps (ms). `color` should be a low-opacity fill (e.g. `rgba(239,68,68,0.15)`) or a `var(--vc-*)` token at reduced opacity. ' +
-        'Default shows two alert-event bands anchored to the demo series start (2026-05-01T08:00Z).',
-      table: { type: { summary: 'PlotBand[]' } },
-    },
-    zones: {
-      control: 'object',
-      description:
-        '`zones?: ZoneConfig[]` — `{ value?, color? }` threshold bands on the series line/fill. ' +
-        'Each entry colors from the previous threshold up to `value`; omit `value` on the last entry to color through the max. ' +
-        'Omit `color` to let `colorPalette` drive zone colors (recommended). ' +
-        'Default shows 3 zones partitioning the demo data range — try `colorPalette="status"` to see semantic coloring.',
-      table: { type: { summary: 'ZoneConfig[]' } },
-    },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['shared-crosshair', 'point', 'disabled'],
-      description: '`tooltip?: { kind: "shared-crosshair" | "point" | "disabled" }` (base prop).',
-      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"shared-crosshair"' } },
-    },
-    showLegend: {
-      control: 'boolean',
-      description: '`showLegend?: boolean` (base prop).',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop) — drives series and zone colors. Try `"status"` with the default zones to see danger/warning/success coloring.',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
-    },
+    ...LINE_ARG_TYPES,
     thresholds: {
       control: false,
       description: '`thresholds?: { value: number; color?: string; status?: StatusKey; label?: string }[]` — maps `yAxis.plotLines`.',
       table: { type: { summary: 'ThresholdLine[]' }, category: 'Proposed API' },
-    },
-    xAxisTitle: {
-      control: 'text',
-      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`. Maps `xAxis.title.text`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    yAxisTitle: {
-      control: 'text',
-      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`. Maps `yAxis.title.text`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
     },
   },
 };
@@ -118,8 +66,8 @@ export const Playground: Story = {
   args: {
     smooth:       false,
     markers:      false,
-    bands:        DEMO_BANDS,
-    zones:        DEMO_ZONES,
+    xBands:       DEMO_X_BANDS,
+    yZones:       DEMO_Y_ZONES,
     xAxisTitle:   '',
     yAxisTitle:   '',
     tooltip:      'shared-crosshair',
@@ -134,9 +82,9 @@ export const Playground: Story = {
       ? { enabled: false }
       : { useHTML: true, shared: args.tooltip === 'shared-crosshair', outside: true };
 
-    // Zone colors: use explicit color if set, otherwise use the palette by index.
-    const resolvedZones = args.zones.length > 0
-      ? args.zones.map((z, i) => ({ ...z, color: z.color ?? palette[i % palette.length] }))
+    // yZone colors: explicit override if set, else palette by index.
+    const resolvedZones = args.yZones.length > 0
+      ? args.yZones.map((z, i) => ({ ...z, color: z.color ?? palette[i % palette.length] }))
       : undefined;
 
     return (
@@ -147,7 +95,7 @@ export const Playground: Story = {
           xAxis: {
             type: 'datetime',
             crosshair: args.tooltip !== 'disabled',
-            plotBands: args.bands.length > 0 ? (args.bands as Highcharts.XAxisPlotBandsOptions[]) : undefined,
+            plotBands: args.xBands.length > 0 ? toHCPlotBands(args.xBands) : undefined,
             title: { text: args.xAxisTitle },
           },
           yAxis: { title: { text: args.yAxisTitle } },

@@ -1,3 +1,4 @@
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Group } from '@visx/group';
 import { AxisBottom } from '@visx/axis';
@@ -6,6 +7,7 @@ import { Bar } from '@visx/shape';
 import Highcharts from 'highcharts';
 import xrangeModule from 'highcharts/modules/xrange';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
+import { SCHEDULE_ARG_TYPES } from '../../argTypes';
 
 
 
@@ -56,7 +58,7 @@ export const Default: Story = {
     const yScale = scaleBand<string>({ domain: days, range: [0, innerHeight], padding: 0.25 });
     const bandH = yScale.bandwidth();
     return (
-      <svg width={width} height={height} style={{ background: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}>
+      <svg width={width} height={height} style={{ background: '#FFFFFF', fontFamily: CHART_FONT_FAMILY }}>
         <Group left={margin.left} top={margin.top}>
           {days.map((day) => {
             const y = yScale(day) ?? 0;
@@ -155,45 +157,38 @@ function inactiveIntervals(active: [number, number][]): [number, number][] {
 }
 
 type ScheduleAfterArgs = {
-  showInactive: boolean;
-  pointWidth:   number;
-  tooltip:      'enabled' | 'disabled';
+  showInactive:  boolean;
+  pointWidth:    number;
+  tooltip:       'enabled' | 'disabled';
+  activeColor:   string;
+  inactiveColor: string;
 };
 type AfterVerityStory = StoryObj<ScheduleAfterArgs>;
 
 export const AfterVerityHighcharts: AfterVerityStory = {
   name: 'After Verity Highcharts: ScheduleChart via xrange (single series)',
   args: {
-    showInactive: true,
-    pointWidth:   18,
-    tooltip:      'enabled',
+    showInactive:  true,
+    pointWidth:    18,
+    tooltip:       'enabled',
+    activeColor:   '#226ecd',
+    inactiveColor: '#dce0e4',
   },
   argTypes: {
-    showInactive: {
-      control: 'boolean',
-      description: '`showInactive?: boolean` — render grey bars for inactive hours. Proposed `ScheduleChart` prop.',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
-    },
-    pointWidth: {
-      control: { type: 'range', min: 8, max: 32, step: 2 },
-      description: '`pointWidth?: number` — row height in pixels. Maps `plotOptions.xrange.pointWidth`.',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '18' } },
-    },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['enabled', 'disabled'],
-      description: '`tooltip?: "enabled" | "disabled"` — show active-interval tooltip on hover.',
-      table: { type: { summary: '"enabled" | "disabled"' }, defaultValue: { summary: '"enabled"' } },
-    },
+    showInactive:  SCHEDULE_ARG_TYPES.showInactive,
+    pointWidth:    SCHEDULE_ARG_TYPES.pointWidth,
+    tooltip:       SCHEDULE_ARG_TYPES.tooltip,
+    activeColor:   SCHEDULE_ARG_TYPES.activeColor,
+    inactiveColor: SCHEDULE_ARG_TYPES.inactiveColor,
   },
   parameters: {
     docs: {
       description: {
         story:
           'Same schedule using Highcharts `xrange`. ' +
-          'Active intervals use `--vc-1` (brand blue), inactive gaps use `--vc-neutral` (grey). ' +
+          'Active intervals use `--vc-1` (brand blue), inactive gaps use `neutral-75` (light grey). ' +
           'Both live in a **single xrange series** with per-point `color` override — this eliminates the vertical grouping offset that appears when two series share the same y-axis rows.\n\n' +
-          '**Color tokens:** `--vc-1` (`#2563eb`) for active, `--vc-neutral` (`#9ca3af`) for inactive. Not the diverging palette — diverging is a 5-stop red→grey→blue scale for above/below-baseline data. This is a binary state chart (on/off), so two semantic tokens are the right call.\n\n' +
+          '**Color tokens:** `--vc-1` (`#226ecd`) for active, `neutral-75` (`#dce0e4`) for inactive. The lighter grey reduces visual weight on the inactive slots, making active intervals stand out more clearly.\n\n' +
           'In the Verity primitive layer this ships as `ScheduleChart` with `activeColor` and `inactiveColor` props, hiding the xrange transform entirely.\n\n' +
           '**Production source:** Alarms: AI Schedule editor (`src/command/alarms-v3/shared/components/schedule/horizontal-schedule-chart/HorizontalScheduleChart.tsx`)',
       },
@@ -210,32 +205,29 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     { day: 'Sun', intervals: [[0,  12]] },
   ]}
   activeColor="var(--vc-1)"
-  inactiveColor="var(--vc-neutral)"
+  inactiveColor="#dce0e4"
 />`,
         type: 'code',
       },
     },
   },
   render: (args) => {
-    const ACTIVE_COLOR   = '#226ecd'; // var(--vc-1)    blue-600
-    const INACTIVE_COLOR = '#838e98'; // var(--vc-neutral) neutral-400
-
     const allPoints: Highcharts.XrangePointOptionsObject[] = [];
     DAYS.forEach((day, yi) => {
       const active = SCHEDULE[day] ?? [];
       for (const pt of intervalsToPoints(active, yi)) {
-        allPoints.push({ ...pt, color: ACTIVE_COLOR });
+        allPoints.push({ ...pt, color: args.activeColor });
       }
       if (args.showInactive) {
         for (const pt of intervalsToPoints(inactiveIntervals(active), yi)) {
-          allPoints.push({ ...pt, color: INACTIVE_COLOR });
+          allPoints.push({ ...pt, color: args.inactiveColor });
         }
       }
     });
 
     return (
       <PlaygroundChart
-        height={260}
+        height={240}
         options={{
           chart: { type: 'xrange' },
           title: { text: '' },
@@ -260,7 +252,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
                 useHTML: true,
                 formatter: function () {
                   const pt = this.point as { x: number; x2: number; y: number; color: string };
-                  if (pt.color === INACTIVE_COLOR) return false as unknown as string;
+                  if (pt.color === args.inactiveColor) return false as unknown as string;
                   const day    = DAYS[pt.y ?? 0];
                   const startH = Math.round((pt.x  ?? 0) / H);
                   const endH   = Math.round((pt.x2 ?? 0) / H);

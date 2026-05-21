@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import { ComboTimeSeriesChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../../utils/fakeData';
+import { COMBO_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Combo and Stock/Trailer Power Metrics (dual axis combo)',
@@ -90,21 +91,13 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     showLegend:         true,
     dualAxis:           true,
     tooltip:            'shared-crosshair',
-    colorPalette:       'categorical',
+    colorPalette:       'status',
     xAxisTitle:         '',
     primaryAxisTitle:   'Watts',
     secondaryAxisTitle: 'State of charge (%)',
   },
   argTypes: {
-    stacking:           { control: 'inline-radio', options: ['none', 'normal'], description: 'Column stacking for column-type series.' },
-    zoom:               { control: 'boolean', description: 'Enable x-axis zoom select.' },
-    showLegend:         { control: 'boolean', description: 'Show/hide the chart legend.' },
-    dualAxis:           { control: 'boolean', description: 'When true, adds a secondary y-axis (right) for SoC series.' },
-    tooltip:            { control: 'inline-radio', options: ['shared-crosshair', 'point', 'disabled'], description: 'Tooltip interaction mode.' },
-    colorPalette:       { control: 'inline-radio', options: ['categorical', 'status', 'sequential', 'diverging'], description: 'Token-based color palette.' },
-    xAxisTitle:         { control: 'text', description: 'X-axis label.' },
-    primaryAxisTitle:   { control: 'text', description: 'Left y-axis label.' },
-    secondaryAxisTitle: { control: 'text', description: 'Right y-axis label (only shown when dualAxis is on).' },
+    ...COMBO_ARG_TYPES,
   },
   parameters: {
     docs: {

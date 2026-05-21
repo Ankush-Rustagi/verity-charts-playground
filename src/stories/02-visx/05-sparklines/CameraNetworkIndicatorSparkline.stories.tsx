@@ -1,4 +1,6 @@
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
 import type { Meta, StoryObj } from '@storybook/react';
+import { SPARKLINE_ARG_TYPES } from '../../argTypes';
 import { Group } from '@visx/group';
 import { scaleLinear, scaleTime } from '@visx/scale';
 import { LinePath } from '@visx/shape';
@@ -35,7 +37,7 @@ export const Default: Story = {
       range: [height, 0],
     });
     return (
-      <div style={{ width, padding: 12, borderRadius: 8, background: '#F9FAFB', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ width, padding: 12, borderRadius: 8, background: '#F9FAFB', fontFamily: CHART_FONT_FAMILY }}>
         <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 2 }}>Network signal</div>
         <div style={{ fontSize: 20, fontWeight: 600, color: '#111827', marginBottom: 6 }}>92%</div>
         <svg width={width} height={height}>
@@ -76,19 +78,25 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     unit:            '%',
     status:          'success',
     showLatestValue: true,
-    width:           264,
+    width:           240,
     height:          56,
     colorPalette:    'categorical',
   },
   argTypes: {
-    type:            { control: 'inline-radio', options: ['line', 'area'], description: 'Sparkline series type.' },
-    caption:         { control: 'text', description: 'Label shown below the sparkline.' },
-    unit:            { control: 'text', description: 'Unit suffix appended to the latest value.' },
-    status:          { control: 'inline-radio', options: ['success', 'warning', 'danger', 'neutral'], description: 'Semantic color for the sparkline line.' },
-    showLatestValue: { control: 'boolean', description: 'Render the most recent value as text above the sparkline.' },
-    width:           { control: { type: 'range', min: 80, max: 500, step: 8 }, description: 'Container width in pixels.' },
-    height:          { control: { type: 'range', min: 32, max: 120, step: 4 }, description: 'Container height in pixels.' },
-    colorPalette:    { control: 'inline-radio', options: ['categorical', 'status', 'sequential', 'diverging'], description: 'Token-based color palette (overridden by `status` when set).' },
+    type:            SPARKLINE_ARG_TYPES.type,
+    caption:         SPARKLINE_ARG_TYPES.caption,
+    unit:            SPARKLINE_ARG_TYPES.unit,
+    showLatestValue: SPARKLINE_ARG_TYPES.showLatestValue,
+    width:           SPARKLINE_ARG_TYPES.width,
+    height:          SPARKLINE_ARG_TYPES.height,
+    colorPalette:    SPARKLINE_ARG_TYPES.colorPalette,
+    // This story uses status as an interactive control (overrides colorPalette with a semantic token)
+    status: {
+      control: 'inline-radio',
+      options: ['success', 'warning', 'danger', 'neutral'],
+      description: '`status?: StatusKey` — semantic color override. Overrides `colorPalette` with a status token.',
+      table: { type: { summary: 'StatusKey' } },
+    },
   },
   parameters: {
     docs: {

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import { AreaChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../../utils/fakeData';
+import { AREA_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Areas/Participant Status (percent-stacked area)',
@@ -71,19 +72,19 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     fillOpacity:  0.5,
     showLegend:   true,
     tooltip:      'shared-crosshair',
-    colorPalette: 'categorical',
+    colorPalette: 'status',
     xAxisTitle:   '',
     yAxisTitle:   'Participants (%)',
   },
   argTypes: {
-    variant:      { control: 'inline-radio', options: ['area', 'areaspline'], description: '`area` = hard corners; `areaspline` = smooth curve.' },
-    stacking:     { control: 'inline-radio', options: ['none', 'normal', 'percent'], description: 'Area stacking mode. `percent` = 100% stacked.' },
-    fillOpacity:  { control: { type: 'range', min: 0, max: 1, step: 0.01 }, description: 'Fill opacity under each area.' },
-    showLegend:   { control: 'boolean', description: 'Show/hide the chart legend.' },
-    tooltip:      { control: 'inline-radio', options: ['shared-crosshair', 'point', 'disabled'], description: 'Tooltip interaction mode.' },
-    colorPalette: { control: 'inline-radio', options: ['categorical', 'status', 'sequential', 'diverging'], description: 'Token-based color palette.' },
-    xAxisTitle:   { control: 'text', description: 'X-axis label.' },
-    yAxisTitle:   { control: 'text', description: 'Y-axis label.' },
+    variant:      AREA_ARG_TYPES.variant,
+    stacking:     AREA_ARG_TYPES.stacking,
+    fillOpacity:  AREA_ARG_TYPES.fillOpacity,
+    showLegend:   AREA_ARG_TYPES.showLegend,
+    tooltip:      AREA_ARG_TYPES.tooltip,
+    colorPalette: AREA_ARG_TYPES.colorPalette,
+    xAxisTitle:   AREA_ARG_TYPES.xAxisTitle,
+    yAxisTitle:   AREA_ARG_TYPES.yAxisTitle,
   },
   parameters: {
     docs: {

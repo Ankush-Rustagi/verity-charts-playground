@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ColumnChart, type ColorPalette } from '../../primitives/VeritySimPrimitives';
 import { fakeColumnSeries } from '../../utils/fakeData';
+import { COLUMN_ARG_TYPES } from '../argTypes';
 
 type Args = {
   stacking: 'normal' | 'percent' | 'none';
@@ -28,56 +29,7 @@ const meta: Meta<Args> = {
     },
   },
   argTypes: {
-    stacking: {
-      control: 'inline-radio',
-      options: ['none', 'normal', 'percent'],
-      description: '`stacking?: "normal" | "percent" | "none"` — maps `plotOptions.column.stacking`. `"none"` = no stacking.',
-      table: { type: { summary: '"normal" | "percent" | "none"' }, defaultValue: { summary: '"none"' } },
-    },
-    columnDensity: {
-      control: 'inline-radio',
-      options: ['tight', 'normal', 'loose'],
-      description: '`columnDensity?: "tight" | "normal" | "loose"` — maps `groupPadding + pointPadding` presets.',
-      table: { type: { summary: '"tight" | "normal" | "loose"' }, defaultValue: { summary: '"normal"' } },
-    },
-    axisKind: {
-      control: 'inline-radio',
-      options: ['datetime', 'categorical'],
-      description: '`xAxis: DatetimeAxis | CategoryAxis` — categorical axis required by ~2 production files.',
-      table: { type: { summary: '"datetime" | "categorical"' }, defaultValue: { summary: '"categorical"' } },
-    },
-    xAxisTitle: {
-      control: 'text',
-      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`. Maps `xAxis.title.text`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    yAxisTitle: {
-      control: 'text',
-      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`. Maps `yAxis.title.text`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    showLegend: {
-      control: 'boolean',
-      description: '`showLegend?: boolean` (base prop) — default auto: `true` when >1 series, `false` for single.',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['shared-crosshair', 'point', 'disabled'],
-      description: '`tooltip?: { kind: "shared-crosshair" | "point" | "disabled" }` (base prop) — three modes cover all 57 audited Command files.',
-      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"shared-crosshair"' } },
-    },
-    dataLabels: {
-      control: 'boolean',
-      description: '`dataLabels?: boolean` — renders value labels on each bar. Auto-disabled by responsive rule at container widths below 400px.',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: "categorical" | "sequential" | "diverging" | "status"` (base prop) — resolves token palette. Categorical: `--vc-1`…`--vc-8`.',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
-    },
+    ...COLUMN_ARG_TYPES,
     onBarClick: {
       control: false,
       description: '`onBarClick?: (point: ColumnPoint) => void` — maps `point.events.click`.',

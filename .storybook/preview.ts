@@ -1,9 +1,21 @@
 import type { Preview } from '@storybook/react';
 import Highcharts from 'highcharts';
+import { CHART_FONT_FAMILY } from '../src/primitives/chartColors';
 
-// Inject minimal table styling for MDX docs pages (Storybook's default sb-unstyled
-// strips table chrome, and our MDX uses JSX <table> for reliable rendering).
 if (typeof document !== 'undefined') {
+  // Load Open Sans from Google Fonts (weights 400, 600 cover all chart needs).
+  const fontLinkId = 'verity-open-sans-font';
+  if (!document.getElementById(fontLinkId)) {
+    const link = document.createElement('link');
+    link.id = fontLinkId;
+    link.rel = 'stylesheet';
+    link.href =
+      'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap';
+    document.head.appendChild(link);
+  }
+
+  // Inject minimal table styling for MDX docs pages (Storybook's default sb-unstyled
+  // strips table chrome, and our MDX uses JSX <table> for reliable rendering).
   const id = 'verity-playground-docs-table-css';
   if (!document.getElementById(id)) {
     const s = document.createElement('style');
@@ -48,8 +60,7 @@ Highcharts.setOptions({
   },
   chart: {
     style: {
-      fontFamily:
-        'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      fontFamily: CHART_FONT_FAMILY,
     },
   },
   credits: { enabled: false },
@@ -93,8 +104,6 @@ const preview: Preview = {
             'ThresholdEditorChart',
             'Sparkline',
             'PieDonutChart',
-            'ScheduleChart',
-            'ExtendChart (escape hatch)',
           ],
           '*',
         ],

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../primitives/PlaygroundChart';
 import { type ColorPalette, PALETTE_HEX } from '../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries, fakePlotBands } from '../../utils/fakeData';
+import { THRESHOLD_EDITOR_ARG_TYPES } from '../argTypes';
 
 type Args = {
   yMin: number;
@@ -28,47 +29,7 @@ const meta: Meta<Args> = {
     },
   },
   argTypes: {
-    yMin: {
-      control: { type: 'number' },
-      description: '`valueRange?.min` — y-axis minimum (maps `yAxis.min`).',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '0' } },
-    },
-    yMax: {
-      control: { type: 'number' },
-      description: '`valueRange?.max` — y-axis maximum (maps `yAxis.max`).',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '100' } },
-    },
-    initialThresholdHigh: {
-      control: { type: 'number' },
-      description: '`thresholds.high` — initial value for the high (danger) threshold band.',
-      table: { type: { summary: 'number' } },
-    },
-    initialThresholdLow: {
-      control: { type: 'number' },
-      description: '`thresholds.low` — initial value for the low (warning) threshold band.',
-      table: { type: { summary: 'number' } },
-    },
-    bands: {
-      control: { type: 'range', min: 0, max: 5, step: 1 },
-      description: '`bands?: PlotBand[]` — alert-event plotBands overlaid on the x-axis. Drag slider to add/remove.',
-      table: { type: { summary: 'PlotBand[]' }, defaultValue: { summary: '2' } },
-    },
-    editable: {
-      control: 'boolean',
-      description: '`editable?: boolean` — enables drag-to-edit on threshold bands. Maps `plotOptions.areaspline.dragDrop.draggableY`.',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
-    },
-    unit: {
-      control: 'text',
-      description: '`unit?: string` — y-axis title label suffix (e.g. `"°C"`, `"dB"`, `"%"`).',
-      table: { type: { summary: 'string' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop) — drives the data series line color from `palette[0]`.',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
-    },
+    ...THRESHOLD_EDITOR_ARG_TYPES,
     onThresholdChange: {
       control: false,
       description: '`onThresholdChange: (thresholds: Threshold[]) => void` — called on each drag-drop and slider change.',

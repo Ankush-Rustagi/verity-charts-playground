@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../primitives/PlaygroundChart';
 import { PrimitiveStoryLayout } from '../../primitives/PrimitiveStoryLayout';
 import { fakeColumnSeries, fakeTimeSeries } from '../../utils/fakeData';
+import { CHART_FONT_FAMILY } from '../../primitives/chartColors';
 
 type Args = {
   pattern: 'static-svg-overlay' | 'dynamic-tracking-label';
@@ -84,7 +85,7 @@ export const Playground: Story = {
             chart.__liveLabel = chart.renderer
               .label(args.labelText, x, y, 'callout', 0, 0, false, true)
               .attr({ fill: args.overlayColor, padding: 4, r: 4, zIndex: 6 })
-              .css({ color: '#FFFFFF', fontSize: '11px', fontFamily: 'Inter, sans-serif' })
+              .css({ color: '#FFFFFF', fontSize: '11px', fontFamily: CHART_FONT_FAMILY })
               .add();
           },
         },

@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import { AreaChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeArearange, fakeTimeSeries } from '../../../utils/fakeData';
+import { AREA_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Areas/Sensor Audio (arearange min/max envelope)',
@@ -60,50 +61,14 @@ export const AfterVerityHighcharts: AfterVerityStory = {
   name: 'After Verity Highcharts: AreaChart variant="arearange"',
   args: { variant: 'arearange', stacking: 'none', fillOpacity: 0.35, xAxisTitle: '', yAxisTitle: 'dB', showLegend: false, tooltip: 'point', colorPalette: 'categorical' },
   argTypes: {
-    variant: {
-      control: 'inline-radio',
-      options: ['area', 'areaspline', 'arearange'],
-      description: '`variant?: "area" | "areaspline" | "arearange"`',
-      table: { type: { summary: '"area" | "areaspline" | "arearange"' }, defaultValue: { summary: '"arearange"' } },
-    },
-    stacking: {
-      control: 'inline-radio',
-      options: ['none', 'normal', 'percent'],
-      description: '`stacking?: "normal" | "percent" | "none"`',
-      table: { type: { summary: '"normal" | "percent" | "none"' }, defaultValue: { summary: '"none"' } },
-    },
-    fillOpacity: {
-      control: { type: 'range', min: 0, max: 1, step: 0.05 },
-      description: '`fillOpacity?: number`',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '0.35' } },
-    },
-    xAxisTitle: {
-      control: 'text',
-      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    yAxisTitle: {
-      control: 'text',
-      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '"dB"' } },
-    },
-    showLegend: {
-      control: 'boolean',
-      description: '`showLegend?: boolean` (base prop)',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['shared-crosshair', 'point', 'disabled'],
-      description: '`tooltip?: { kind: ... }` (base prop)',
-      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"point"' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop) — categorical recommended for single-envelope charts.',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
-    },
+    variant:      AREA_ARG_TYPES.variant,
+    stacking:     AREA_ARG_TYPES.stacking,
+    fillOpacity:  AREA_ARG_TYPES.fillOpacity,
+    xAxisTitle:   AREA_ARG_TYPES.xAxisTitle,
+    yAxisTitle:   AREA_ARG_TYPES.yAxisTitle,
+    showLegend:   AREA_ARG_TYPES.showLegend,
+    tooltip:      AREA_ARG_TYPES.tooltip,
+    colorPalette: AREA_ARG_TYPES.colorPalette,
   },
   parameters: {
     docs: {

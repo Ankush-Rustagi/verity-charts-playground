@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import { ColumnChart } from '../../../primitives/VeritySimPrimitives';
+import { COLUMN_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Columns/Intercoms Dashboard (stacked weekly)',
@@ -66,9 +67,8 @@ type ColumnAfterArgs = {
   xAxisTitle:    string;
   yAxisTitle:    string;
 };
-// colorPalette is intentionally absent: all series carry `status` props, so
-// the primitive's status token always wins over the palette. There is no
-// meaningful palette to expose here.
+// colorPalette="status" is set explicitly so the series' status hints activate.
+// With the new applyPalette logic, status only drives color when colorPalette="status".
 
 type AfterVerityStory = StoryObj<ColumnAfterArgs>;
 
@@ -83,12 +83,12 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     yAxisTitle:    'Calls',
   },
   argTypes: {
-    stacking:      { control: 'inline-radio', options: ['none', 'normal', 'percent'], description: 'Column stacking mode.' },
-    columnDensity: { control: 'inline-radio', options: ['tight', 'normal', 'loose'],  description: 'Column width relative to bar spacing.' },
-    showLegend:    { control: 'boolean', description: 'Show/hide the chart legend.' },
-    tooltip:       { control: 'inline-radio', options: ['shared-crosshair', 'point', 'disabled'], description: 'Tooltip interaction mode.' },
-    xAxisTitle:    { control: 'text', description: 'X-axis label.' },
-    yAxisTitle:    { control: 'text', description: 'Y-axis label.' },
+    stacking:      COLUMN_ARG_TYPES.stacking,
+    columnDensity: COLUMN_ARG_TYPES.columnDensity,
+    showLegend:    COLUMN_ARG_TYPES.showLegend,
+    tooltip:       COLUMN_ARG_TYPES.tooltip,
+    xAxisTitle:    COLUMN_ARG_TYPES.xAxisTitle,
+    yAxisTitle:    COLUMN_ARG_TYPES.yAxisTitle,
   },
   parameters: {
     docs: {
@@ -125,6 +125,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
         showLegend={args.showLegend}
         xAxisTitle={args.xAxisTitle}
         yAxisTitle={args.yAxisTitle}
+        colorPalette="status"
         series={[
           { name: 'Answered',  data: [22, 30, 25, 28, 35, 18, 12], status: 'success' },
           { name: 'Missed',    data: [6,  4,  8,  5,  7,  3,  5],  status: 'danger'  },

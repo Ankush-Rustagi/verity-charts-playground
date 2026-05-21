@@ -2,6 +2,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import { LineChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries, fakePlotBands } from '../../../utils/fakeData';
+import { LINE_ARG_TYPES } from '../../argTypes';
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Lines and Splines/Sensor Dashboard Tile (chrome-free, disabled tooltip)',
@@ -19,15 +21,16 @@ export default meta;
 
 type Story = StoryObj<typeof PlaygroundChart>;
 type LineArgs = {
-  smooth: boolean;
-  markers: boolean;
-  zones: boolean;
-  bands: number;
-  xAxisTitle: string;
-  yAxisTitle: string;
-  tooltip: 'shared-crosshair' | 'point' | 'disabled';
-  showLegend: boolean;
+  smooth:       boolean;
+  markers:      boolean;
+  yZones:       boolean;
+  xBands:       number;
+  xAxisTitle:   string;
+  yAxisTitle:   string;
+  tooltip:      'shared-crosshair' | 'point' | 'disabled';
+  showLegend:   boolean;
   colorPalette: ColorPalette;
+  seriesName:   string;
 };
 type AfterVerityStory = StoryObj<LineArgs>;
 
@@ -37,10 +40,10 @@ export const Default: Story = {
     const latest = data[data.length - 1][1];
     return (
       <div style={{ width: 240, padding: 16, borderRadius: 12, background: '#FFFFFF', border: '1px solid #E5E7EB' }}>
-        <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 2, fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 2, fontFamily: CHART_FONT_FAMILY }}>
           Temperature, last hour
         </div>
-        <div style={{ fontSize: 22, fontWeight: 600, color: '#111827', marginBottom: 8, fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ fontSize: 22, fontWeight: 600, color: '#111827', marginBottom: 8, fontFamily: CHART_FONT_FAMILY }}>
           {latest.toFixed(1)}°F
         </div>
         <PlaygroundChart
@@ -75,54 +78,23 @@ export const Default: Story = {
 
 export const AfterVerityHighcharts: AfterVerityStory = {
   name: 'After Verity Highcharts: LineChart chromeMinimal',
-  args: { smooth: true, markers: false, zones: false, bands: 0, xAxisTitle: '', yAxisTitle: '', tooltip: 'disabled', showLegend: false, colorPalette: 'categorical' },
+  args: { smooth: true, markers: false, yZones: false, xBands: 0, xAxisTitle: '', yAxisTitle: '', tooltip: 'disabled', showLegend: false, colorPalette: 'categorical', seriesName: 'Temp' },
   argTypes: {
-    smooth: {
+    ...LINE_ARG_TYPES,
+    yZones: {
       control: 'boolean',
-      description: '`smooth?: boolean` — false = line, true = spline',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
-    },
-    markers: {
-      control: 'boolean',
-      description: '`markers?: boolean`',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    zones: {
-      control: 'boolean',
-      description: '`zones?: ZoneConfig[]` — threshold coloring',
+      description: '`yZones?: ZoneConfig[]` — Y-axis threshold coloring. Toggle to compare with/without.',
       table: { type: { summary: 'ZoneConfig[]' }, defaultValue: { summary: 'undefined' } },
     },
-    bands: {
+    xBands: {
       control: { type: 'range', min: 0, max: 5, step: 1 },
-      description: '`bands?: PlotBand[]` — alert-event plotBands',
+      description: '`xBands?: PlotBand[]` — X-axis alert-event background overlays count.',
       table: { type: { summary: 'PlotBand[]' }, defaultValue: { summary: '0' } },
     },
-    xAxisTitle: {
+    seriesName: {
       control: 'text',
-      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`. Hidden in chromeMinimal but wired through.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    yAxisTitle: {
-      control: 'text',
-      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`. Hidden in chromeMinimal but wired through.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['shared-crosshair', 'point', 'disabled'],
-      description: '`tooltip?: { kind: ... }` (base prop) — disabled = no crosshair/hover dot',
-      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"disabled"' } },
-    },
-    showLegend: {
-      control: 'boolean',
-      description: '`showLegend?: boolean` (base prop)',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop)',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
+      description: 'Label for the data series shown in legend and tooltip.',
+      table: { type: { summary: 'string' }, defaultValue: { summary: 'Temp' } },
     },
   },
   parameters: {
@@ -147,13 +119,13 @@ export const AfterVerityHighcharts: AfterVerityStory = {
   render: (args) => {
     const data = fakeTimeSeries({ count: 60, stepMs: 60 * 1000, base: 70.5, amplitude: 1.5, noise: 0.4, seed: 33 });
     const latest = data[data.length - 1][1];
-    const eventBands = fakePlotBands({ count: args.bands });
+    const eventBands = fakePlotBands({ count: args.xBands });
     return (
       <div style={{ width: 260, padding: 16, borderRadius: 12, background: '#FFFFFF', border: '1px solid #E5E7EB' }}>
-        <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 2, fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 2, fontFamily: CHART_FONT_FAMILY }}>
           Temperature, last hour
         </div>
-        <div style={{ fontSize: 22, fontWeight: 600, color: '#111827', marginBottom: 8, fontFamily: 'Inter, sans-serif' }}>
+        <div style={{ fontSize: 22, fontWeight: 600, color: '#111827', marginBottom: 8, fontFamily: CHART_FONT_FAMILY }}>
           {latest.toFixed(1)}&deg;F
         </div>
         <LineChart
@@ -163,9 +135,9 @@ export const AfterVerityHighcharts: AfterVerityStory = {
           showLegend={args.showLegend}
           xAxisTitle={args.xAxisTitle}
           yAxisTitle={args.yAxisTitle}
-          series={[{ name: 'Temp', data: data as [number, number][] }]}
-          zones={args.zones ? [{ value: 68 }, { value: 72 }, {}] : undefined}
-          bands={eventBands.length > 0 ? eventBands : undefined}
+          series={[{ name: args.seriesName, data: data as [number, number][] }]}
+          yZones={args.yZones ? [{ value: 68 }, { value: 72 }, {}] : undefined}
+          xBands={eventBands.length > 0 ? eventBands : undefined}
           tooltip={{ kind: args.tooltip }}
           chromeMinimal
           height={64}

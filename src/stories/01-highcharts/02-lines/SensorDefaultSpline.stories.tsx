@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { LINE_ARG_TYPES } from '../../argTypes';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import {
   LineChart,
@@ -6,14 +7,15 @@ import {
   type PlotBand,
   type ZoneConfig,
 } from '../../../primitives/VeritySimPrimitives';
+import { BAND_COLORS } from '../../../primitives/chartColors';
 import { fakeTimeSeries } from '../../../utils/fakeData';
 
 // Sensor series: count 192, step 5 min, starting 2026-05-01T08:00Z = 1746086400000.
 // Band timestamps are offsets from that anchor so they land visibly in the chart.
 const DEMO_BANDS: PlotBand[] = [
-  { from: 1746090000000, to: 1746092700000, color: 'rgba(239,68,68,0.15)',  label: 'Alert: motion'    },
-  { from: 1746104400000, to: 1746111600000, color: 'rgba(245,158,11,0.12)', label: 'Alert: temp high' },
-  { from: 1746118800000, to: 1746120600000, color: 'rgba(239,68,68,0.15)',  label: 'Alert: door ajar' },
+  { from: 1746090000000, to: 1746092700000, color: BAND_COLORS.danger,  label: 'Alert: motion'    },
+  { from: 1746104400000, to: 1746111600000, color: BAND_COLORS.warning, label: 'Alert: temp high' },
+  { from: 1746118800000, to: 1746120600000, color: BAND_COLORS.danger,  label: 'Alert: door ajar' },
 ];
 
 // Zones for temperature data (base ~68, range ~60–78 °F).
@@ -40,15 +42,20 @@ export default meta;
 
 type Story = StoryObj<typeof PlaygroundChart>;
 type LineArgs = {
-  smooth:       boolean;
-  markers:      boolean;
-  bands:        PlotBand[];
-  zones:        ZoneConfig[];
-  xAxisTitle:   string;
-  yAxisTitle:   string;
-  tooltip:      'shared-crosshair' | 'point' | 'disabled';
-  showLegend:   boolean;
-  colorPalette: ColorPalette;
+  smooth:             boolean;
+  markers:            boolean;
+  xBands:             PlotBand[];
+  yZones:             ZoneConfig[];
+  xAxisTitle:         string;
+  yAxisTitle:         string;
+  tooltip:            'shared-crosshair' | 'point' | 'disabled';
+  showLegend:         boolean;
+  colorPalette:       ColorPalette;
+  seriesName:         string;
+  thresholdHighValue: number;
+  thresholdHighLabel: string;
+  thresholdLowValue:  number;
+  thresholdLowLabel:  string;
 };
 type AfterVerityStory = StoryObj<LineArgs>;
 
@@ -98,89 +105,67 @@ export const Default: Story = {
 };
 
 export const AfterVerityHighcharts: AfterVerityStory = {
-  name: 'After Verity Highcharts: LineChart + bands + thresholds',
+  name: 'After Verity Highcharts: LineChart + xBands + thresholds',
   args: {
-    smooth:       true,
-    markers:      false,
-    bands:        DEMO_BANDS,
-    zones:        DEMO_ZONES,
-    xAxisTitle:   '',
-    yAxisTitle:   '°F',
-    tooltip:      'shared-crosshair',
-    showLegend:   false,
-    colorPalette: 'categorical',
+    smooth:             true,
+    markers:            false,
+    xBands:             DEMO_BANDS,
+    yZones:             DEMO_ZONES,
+    xAxisTitle:         '',
+    yAxisTitle:         '°F',
+    tooltip:            'shared-crosshair',
+    showLegend:         false,
+    colorPalette:       'categorical',
+    seriesName:         'Temperature',
+    thresholdHighValue: 75,
+    thresholdHighLabel: 'High alert',
+    thresholdLowValue:  60,
+    thresholdLowLabel:  'Low alert',
   },
   argTypes: {
-    smooth: {
-      control: 'boolean',
-      description: '`smooth?: boolean` — false = line, true = spline',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
-    },
-    markers: {
-      control: 'boolean',
-      description: '`markers?: boolean`',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    bands: {
-      control: 'object',
-      description:
-        '`bands?: PlotBand[]` — `{ from, to, color, label? }` x-axis time-range overlays for alert events. ' +
-        '`from`/`to` are Unix timestamps (ms). Edit the array to change placement, width (`to − from`), or color. ' +
-        'Default shows 3 alert-event bands anchored to 2026-05-01T08:00Z.',
-      table: { type: { summary: 'PlotBand[]' } },
-    },
-    zones: {
-      control: 'object',
-      description:
-        '`zones?: ZoneConfig[]` — `{ value?, color? }` threshold bands on the line itself. ' +
-        'Each entry colors from the previous threshold up to `value`. Omit `color` to use `colorPalette`. ' +
-        'Default partitions °F data range (≤65 / 65–72 / >72). Try `colorPalette="status"` for semantic coloring.',
-      table: { type: { summary: 'ZoneConfig[]' } },
-    },
-    xAxisTitle: {
+    ...LINE_ARG_TYPES,
+    seriesName: {
       control: 'text',
-      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
+      description: 'Label for the data series shown in legend and tooltip.',
+      table: { type: { summary: 'string' }, defaultValue: { summary: 'Temperature' } },
     },
-    yAxisTitle: {
+    thresholdHighValue: {
+      control: { type: 'number' },
+      description: 'Value for the upper threshold plotline.',
+      table: { type: { summary: 'number' }, defaultValue: { summary: '75' } },
+    },
+    thresholdHighLabel: {
       control: 'text',
-      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '"°F"' } },
+      description: 'Label text for the upper threshold plotline.',
+      table: { type: { summary: 'string' }, defaultValue: { summary: 'High alert' } },
     },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['shared-crosshair', 'point', 'disabled'],
-      description: '`tooltip?: { kind: ... }` (base prop)',
-      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"shared-crosshair"' } },
+    thresholdLowValue: {
+      control: { type: 'number' },
+      description: 'Value for the lower threshold plotline.',
+      table: { type: { summary: 'number' }, defaultValue: { summary: '60' } },
     },
-    showLegend: {
-      control: 'boolean',
-      description: '`showLegend?: boolean` (base prop)',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop) — drives series line + zone colors. Threshold lines always use status tokens.',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
+    thresholdLowLabel: {
+      control: 'text',
+      description: 'Label text for the lower threshold plotline.',
+      table: { type: { summary: 'string' }, defaultValue: { summary: 'Low alert' } },
     },
   },
   parameters: {
     docs: {
       description: {
         story:
-          'Same chart using a Verity `LineChart`. `bands` passes alert-event plotBands; threshold `plotLines` use `status` tokens instead of raw hex.\n\n**Production source:** Sensors: Default Detail Chart (`src/command/sensors/components/sensor-highcharts/`)',
+          'Same chart using a Verity `LineChart`. `xBands` passes alert-event background overlays (time windows on the x-axis); `thresholds` plotLines use `status` tokens instead of raw hex.\n\n**Production source:** Sensors: Default Detail Chart (`src/command/sensors/components/sensor-highcharts/`)',
       },
       source: {
         code: `<LineChart
   smooth
   colorPalette="categorical"
   series={[{ name: 'Temperature', data: tempData }]}
-  bands={[
-    { from: alertStart1, to: alertStart1 + 45*60000, color: 'rgba(239,68,68,0.15)', label: 'Alert: motion'    },
-    { from: alertStart2, to: alertStart2 + 2*3600000, color: 'rgba(245,158,11,0.12)', label: 'Alert: temp high' },
+  xBands={[
+    { from: alertStart1, to: alertStart1 + 45*60000,   color: BAND_COLORS.danger,  label: 'Alert: motion'    },
+    { from: alertStart2, to: alertStart2 + 2*3600000,  color: BAND_COLORS.warning, label: 'Alert: temp high' },
   ]}
-  zones={[
+  yZones={[
     { value: 65 },  // cool
     { value: 72 },  // normal
     {},             // warm
@@ -205,12 +190,12 @@ export const AfterVerityHighcharts: AfterVerityStory = {
         showLegend={args.showLegend}
         xAxisTitle={args.xAxisTitle}
         yAxisTitle={args.yAxisTitle}
-        series={[{ name: 'Temperature', data: data as [number, number][] }]}
-        bands={args.bands.length > 0 ? args.bands : undefined}
-        zones={args.zones.length > 0 ? args.zones : undefined}
+        series={[{ name: args.seriesName, data: data as [number, number][] }]}
+        xBands={args.xBands.length > 0 ? args.xBands : undefined}
+        yZones={args.yZones.length > 0 ? args.yZones : undefined}
         thresholds={[
-          { value: 75, status: 'danger',  label: 'High alert' },
-          { value: 60, status: 'warning', label: 'Low alert'  },
+          { value: args.thresholdHighValue, status: 'danger',  label: args.thresholdHighLabel },
+          { value: args.thresholdLowValue,  status: 'warning', label: args.thresholdLowLabel  },
         ]}
         tooltip={{ kind: args.tooltip }}
       />

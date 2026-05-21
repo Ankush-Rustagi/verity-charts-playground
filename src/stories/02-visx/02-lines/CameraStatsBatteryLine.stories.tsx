@@ -1,3 +1,4 @@
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Group } from '@visx/group';
 import { AxisBottom, AxisLeft } from '@visx/axis';
@@ -7,6 +8,7 @@ import { GridRows } from '@visx/grid';
 import { curveMonotoneX } from '@visx/curve';
 import { AreaChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../../utils/fakeData';
+import { AREA_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta = {
   title: '02 visx/Lines/Camera Device Stats Battery (Omaha team, 2025)',
@@ -39,7 +41,7 @@ export const Default: Story = {
     });
     const yScale = scaleLinear<number>({ domain: [0, 100], range: [innerHeight, 0] });
     return (
-      <svg width={width} height={height} style={{ background: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}>
+      <svg width={width} height={height} style={{ background: '#FFFFFF', fontFamily: CHART_FONT_FAMILY }}>
         <Group left={margin.left} top={margin.top}>
           <GridRows scale={yScale} width={innerWidth} stroke="#E5E7EB" strokeDasharray="2,2" />
           <AreaClosed
@@ -86,18 +88,18 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     fillOpacity:  0.18,
     showLegend:   false,
     tooltip:      'shared-crosshair',
-    colorPalette: 'categorical',
+    colorPalette: 'status',
     xAxisTitle:   '',
     yAxisTitle:   'Battery (%)',
   },
   argTypes: {
-    variant:      { control: 'inline-radio', options: ['area', 'areaspline'], description: '`area` = hard corners; `areaspline` = smooth curve.' },
-    fillOpacity:  { control: { type: 'range', min: 0, max: 1, step: 0.01 }, description: 'Fill opacity under the line (0 = no fill).' },
-    showLegend:   { control: 'boolean', description: 'Show/hide the chart legend.' },
-    tooltip:      { control: 'inline-radio', options: ['shared-crosshair', 'point', 'disabled'], description: 'Tooltip interaction mode.' },
-    colorPalette: { control: 'inline-radio', options: ['categorical', 'status', 'sequential', 'diverging'], description: 'Token-based color palette.' },
-    xAxisTitle:   { control: 'text', description: 'X-axis label.' },
-    yAxisTitle:   { control: 'text', description: 'Y-axis label.' },
+    variant:      AREA_ARG_TYPES.variant,
+    fillOpacity:  AREA_ARG_TYPES.fillOpacity,
+    showLegend:   AREA_ARG_TYPES.showLegend,
+    tooltip:      AREA_ARG_TYPES.tooltip,
+    colorPalette: AREA_ARG_TYPES.colorPalette,
+    xAxisTitle:   AREA_ARG_TYPES.xAxisTitle,
+    yAxisTitle:   AREA_ARG_TYPES.yAxisTitle,
   },
   parameters: {
     docs: {
@@ -129,6 +131,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
         xAxisTitle={args.xAxisTitle}
         yAxisTitle={args.yAxisTitle}
         series={[{ name: 'Battery (%)', data: series, status: 'success' }]}
+        height={280}
       />
     );
   },

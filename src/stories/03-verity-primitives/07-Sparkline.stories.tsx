@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Sparkline, type ColorPalette } from '../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../utils/fakeData';
+import { SPARKLINE_ARG_TYPES } from '../argTypes';
 
 type Args = {
   type: 'line' | 'area';
@@ -26,53 +27,7 @@ const meta: Meta<Args> = {
     },
   },
   argTypes: {
-    type: {
-      control: 'inline-radio',
-      options: ['line', 'area'],
-      description: '`type?: "line" | "area"` — line renders without fill; area renders filled. Spec also reserves `"column"` for future use.',
-      table: { type: { summary: '"line" | "area"' }, defaultValue: { summary: '"area"' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` — drives the series color from `palette[0]`. Overridden by `status` if set.',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
-    },
-    height: {
-      control: { type: 'range', min: 24, max: 120, step: 4 },
-      description: '`height?: number` (default 56) — fixed pixel height. No responsive override.',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '56' } },
-    },
-    width: {
-      control: { type: 'range', min: 80, max: 480, step: 8 },
-      description: '`width?: number` (default 240) — fixed pixel width. No responsive override.',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '240' } },
-    },
-    showLatestValue: {
-      control: 'boolean',
-      description: '`showEndpoint?: boolean` (spec) — highlights the last data point with a value callout.',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
-    },
-    caption: {
-      control: 'text',
-      description: '`label: string` (sim card wrapper) — shown above the sparkline as the metric name.',
-      table: { type: { summary: 'string' } },
-    },
-    unit: {
-      control: 'text',
-      description: '`unit?: string` — displayed after the latest value.',
-      table: { type: { summary: 'string' } },
-    },
-    trend: {
-      control: false,
-      description: '`trend?: "up" | "down" | "flat"` — auto-computed from data if omitted. Drives directional color on the latest value.',
-      table: { type: { summary: '"up" | "down" | "flat"' }, category: 'Proposed API' },
-    },
-    status: {
-      control: false,
-      description: '`status?: "success" | "warning" | "danger" | "neutral"` — overrides `colorPalette` with a semantic status token.',
-      table: { type: { summary: 'StatusKey' }, category: 'Proposed API' },
-    },
+    ...SPARKLINE_ARG_TYPES,
   },
 };
 export default meta;

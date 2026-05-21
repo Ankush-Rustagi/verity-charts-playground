@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import { Gauge } from '../../../primitives/VeritySimPrimitives';
+import { STATUS_COLORS, CHART_FONT_FAMILY } from '../../../primitives/chartColors';
+import { GAUGE_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Gauges/Connect Box (solidgauge donut)',
@@ -31,9 +33,13 @@ export const Default: Story = {
             size: '100%',
             startAngle: -120,
             endAngle: 120,
+            borderWidth: 0,
+            borderColor: 'transparent',
             background: [
               {
                 backgroundColor: '#E5E7EB',
+                borderWidth: 0,
+                borderColor: 'transparent',
                 innerRadius: '75%',
                 outerRadius: '100%',
                 shape: 'arc',
@@ -44,9 +50,11 @@ export const Default: Story = {
             min: 0,
             max: 100,
             stops: [
-              [0.0, '#EF4444'],
-              [0.5, '#F59E0B'],
-              [0.85, '#22C55E'],
+              [0,       STATUS_COLORS.danger],
+              [0.499,   STATUS_COLORS.danger],
+              [0.5,     STATUS_COLORS.warning],
+              [0.849,   STATUS_COLORS.warning],
+              [0.85,    STATUS_COLORS.success],
             ],
             tickPositions: [],
             labels: { enabled: false },
@@ -55,12 +63,17 @@ export const Default: Story = {
           credits: { enabled: false },
           plotOptions: {
             solidgauge: {
+              borderWidth: 0,
+              borderColor: 'transparent',
+              linecap: 'round',
               dataLabels: {
                 enabled: true,
                 useHTML: true,
+                borderWidth: 0,
+                backgroundColor: 'none',
                 y: -20,
                 formatter: function () {
-                  return `<div style="text-align:center;font-family:Inter,sans-serif"><div style="font-size:48px;font-weight:700">${this.y}%</div><div style="font-size:14px;color:#6B7280;margin-top:4px">Camera uptime</div></div>`;
+                  return `<div style="text-align:center;font-family:${CHART_FONT_FAMILY}"><div style="font-size:48px;font-weight:700">${this.y}%</div><div style="font-size:14px;color:#6B7280;margin-top:4px">Camera uptime</div></div>`;
                 },
               },
               innerRadius: '75%',
@@ -83,6 +96,8 @@ export const Default: Story = {
 
 type GaugeAfterArgs = {
   value:       number;
+  min:         number;
+  max:         number;
   unit:        string;
   centerLabel: string;
   warnAt:      number;
@@ -97,6 +112,8 @@ export const AfterVerityHighcharts: AfterVerityStory = {
   name: 'After Verity Highcharts: Gauge + semantic thresholds',
   args: {
     value:       73,
+    min:         0,
+    max:         100,
     unit:        '%',
     centerLabel: 'Camera uptime',
     warnAt:      50,
@@ -105,13 +122,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     gaugeType:   'solid',
   },
   argTypes: {
-    value:       { control: { type: 'range', min: 0, max: 100, step: 1 }, description: 'Current gauge value.' },
-    unit:        { control: 'text', description: 'Unit suffix shown in the center label.' },
-    centerLabel: { control: 'text', description: 'Label text beneath the value in the gauge center.' },
-    warnAt:      { control: { type: 'range', min: 0, max: 100, step: 1 }, description: 'Threshold below which the arc turns warning (yellow).' },
-    goodAt:      { control: { type: 'range', min: 0, max: 100, step: 1 }, description: 'Threshold above which the arc turns success (green).' },
-    thickness:   { control: 'inline-radio', options: ['thin', 'normal', 'thick'], description: 'Arc track thickness.' },
-    gaugeType:   { control: 'inline-radio', options: ['solid', 'arc'],            description: '`solid` fills the arc; `arc` shows a thin ring.' },
+    ...GAUGE_ARG_TYPES,
   },
   parameters: {
     docs: {
@@ -133,6 +144,8 @@ export const AfterVerityHighcharts: AfterVerityStory = {
   render: (args) => (
     <Gauge
       value={args.value}
+      min={args.min}
+      max={args.max}
       unit={args.unit}
       centerLabel={args.centerLabel}
       thickness={args.thickness}

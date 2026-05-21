@@ -8,10 +8,10 @@
  * primitives exist in Verkada-Web.
  */
 import { useState, useEffect } from 'react';
-import type { ReactNode, CSSProperties } from 'react';
 import Highcharts from 'highcharts';
 import xrangeModule from 'highcharts/modules/xrange';
 import { PlaygroundChart } from './PlaygroundChart';
+import { LIGHT_CHART, PALETTE_ARRAYS, STATUS_COLORS, CHART_FONT_FAMILY } from './chartColors';
 
 xrangeModule(Highcharts);
 
@@ -61,14 +61,10 @@ const TOKEN_HEX: Record<string, string> = {
 };
 
 export const PALETTE_HEX: Record<ColorPalette, string[]> = {
-  // blue-600, cyan-500, violet-500, yellow-500, red-400, green-500, purple-600, orange-500
-  categorical: ['#226ecd', '#19a0d5', '#6565d9', '#fb9717', '#de3243', '#14ba74', '#893dcd', '#ff5500'],
-  // blue-10 → blue-1000 (Verkada blue scale, light to dark)
-  sequential:  ['#dee9f8', '#9cbee9', '#6fa1de', '#4e8bd7', '#347ad1', '#226ecd', '#184d8f', '#122740'],
-  // red-500, red-100, neutral-75, blue-50, blue-700
-  diverging:   ['#cb2939', '#f3847d', '#dce0e4', '#9cbee9', '#1d5eae'],
-  // green-500, yellow-600, red-400, neutral-400
-  status:      ['#14ba74', '#f18313', '#de3243', '#838e98'],
+  categorical: [...PALETTE_ARRAYS.categorical],
+  sequential:  [...PALETTE_ARRAYS.sequential],
+  diverging:   [...PALETTE_ARRAYS.diverging],
+  status:      [...PALETTE_ARRAYS.status],
 };
 
 // Zone coloring uses a different order than series coloring.
@@ -79,7 +75,7 @@ const ZONE_PALETTE_HEX: Record<ColorPalette, string[]> = {
   categorical: PALETTE_HEX.categorical,
   sequential:  [...PALETTE_HEX.sequential].reverse(), // darkest first → lowest values
   diverging:   PALETTE_HEX.diverging,
-  status:      ['#de3243', '#f18313', '#14ba74', '#838e98'], // danger → warning → success → neutral
+  status:      [STATUS_COLORS.danger, STATUS_COLORS.warning, STATUS_COLORS.success, STATUS_COLORS.neutral],
 };
 
 /** Resolves a CSS token string or plain hex to a Highcharts-ready color. */
@@ -89,18 +85,17 @@ function resolveColor(color: string): string {
 
 export type StatusKey = 'success' | 'warning' | 'danger' | 'neutral';
 
-const STATUS_HEX: Record<StatusKey, string> = {
-  success: '#14ba74',   // green-500
-  warning: '#f18313',   // yellow-600
-  danger:  '#de3243',   // red-400
-  neutral: '#838e98',   // neutral-400
-};
+const STATUS_HEX: Record<StatusKey, string> = { ...STATUS_COLORS };
 
 /**
  * Applies colors to series in priority order:
  *   1. Explicit `color` (token string or hex) — escape hatch, avoid in consumer code
- *   2. `status` key ('success' | 'warning' | 'danger' | 'neutral') — semantic intent
- *   3. `colorPalette` by index — default for purely categorical series
+ *   2. `status` key ('success' | 'warning' | 'danger' | 'neutral') — only when colorPalette="status"
+ *   3. `colorPalette` by index — all other palette values ignore per-series status
+ *
+ * This means colorPalette="categorical" always gives you categorical colors,
+ * even if individual series carry a status annotation.
+ * Set colorPalette="status" to activate semantic token coloring.
  */
 function applyPalette<T extends { color?: string; status?: StatusKey }>(
   series: T[],
@@ -109,8 +104,8 @@ function applyPalette<T extends { color?: string; status?: StatusKey }>(
   const colors = PALETTE_HEX[palette];
   return series.map((s, i) => ({
     ...s,
-    color: s.color  ? resolveColor(s.color)
-         : s.status ? STATUS_HEX[s.status]
+    color: s.color                         ? resolveColor(s.color)
+         : palette === 'status' && s.status ? STATUS_HEX[s.status]
          : colors[i % colors.length],
   }));
 }
@@ -140,6 +135,22 @@ export type ThresholdLine = {
   dashStyle?: Highcharts.DashStyleValue;
   label?: string;
 };
+
+/**
+ * Converts our simple PlotBand shape to the Highcharts XAxisPlotBandsOptions shape.
+ * Highcharts requires label to be an object ({ text: string }), not a plain string.
+ * Passing a string directly causes Highcharts to silently skip rendering the entire band.
+ */
+export function toHCPlotBands(bands: PlotBand[]): Highcharts.XAxisPlotBandsOptions[] {
+  return bands.map((b) => ({
+    from: b.from,
+    to: b.to,
+    color: b.color,
+      label: b.label
+      ? { text: b.label, style: { fontSize: '11px', color: LIGHT_CHART.vcNeutral } }
+      : undefined,
+  }));
+}
 
 function resolveTooltip(tooltip: TooltipConfig | undefined): Highcharts.TooltipOptions {
   if (!tooltip || tooltip.kind === 'shared-crosshair') return { useHTML: true, shared: true, outside: true };
@@ -236,8 +247,10 @@ export interface LineChartProps {
   /** true = spline (smooth curve), false = straight line; default false */
   smooth?: boolean;
   markers?: boolean;
-  zones?: ZoneConfig[];
-  bands?: PlotBand[];
+  /** Y-axis value zones: color the line/fill where the data crosses a threshold. */
+  yZones?: ZoneConfig[];
+  /** X-axis time bands: shade a background region over a time range. */
+  xBands?: PlotBand[];
   thresholds?: ThresholdLine[];
   xAxisTitle?: string;
   yAxisTitle?: string;
@@ -252,8 +265,8 @@ export function LineChart({
   colorPalette = 'categorical',
   smooth = false,
   markers = false,
-  zones,
-  bands,
+  yZones,
+  xBands,
   thresholds,
   xAxisTitle,
   yAxisTitle,
@@ -264,7 +277,7 @@ export function LineChart({
 }: LineChartProps) {
   const curve = smooth ? 'spline' : 'line';
   const resolvedSeries = applyPalette(series, colorPalette);
-  const resolvedZones = zones ? applyZonePalette(zones, colorPalette) : undefined;
+  const resolvedZones = yZones ? applyZonePalette(yZones, colorPalette) : undefined;
 
   const plotLines: Highcharts.YAxisPlotLinesOptions[] = (thresholds ?? []).map((t) => ({
     value: t.value,
@@ -288,7 +301,7 @@ export function LineChart({
         xAxis: {
           type: 'datetime',
           crosshair: !chromeMinimal && tooltip?.kind !== 'disabled',
-          plotBands: bands,
+          plotBands: xBands && xBands.length > 0 ? toHCPlotBands(xBands) : undefined,
           ...(chromeMinimal ? { visible: false } : { title: { text: xAxisTitle ?? '' } }),
         },
         yAxis: {
@@ -316,8 +329,10 @@ export interface AreaChartProps {
   colorPalette?: ColorPalette;
   stacking?: 'normal' | 'percent' | 'none';
   fillOpacity?: number;
-  bands?: PlotBand[];
-  zones?: ZoneConfig[];
+  /** X-axis time bands: shade a background region over a time range. */
+  xBands?: PlotBand[];
+  /** Y-axis value zones: color the area fill where the data crosses a threshold. */
+  yZones?: ZoneConfig[];
   xAxisTitle?: string;
   yAxisTitle?: string;
   showLegend?: boolean;
@@ -331,8 +346,8 @@ export function AreaChart({
   colorPalette = 'categorical',
   stacking,
   fillOpacity = 0.18,
-  bands,
-  zones,
+  xBands,
+  yZones,
   xAxisTitle,
   yAxisTitle,
   showLegend = false,
@@ -341,7 +356,7 @@ export function AreaChart({
 }: AreaChartProps) {
   const hcType = variant === 'arearange' ? 'arearange' : variant;
   const resolvedSeries = applyPalette(series, colorPalette);
-  const resolvedZones = zones ? applyZonePalette(zones, colorPalette) : undefined;
+  const resolvedZones = yZones ? applyZonePalette(yZones, colorPalette) : undefined;
 
   return (
     <PlaygroundChart
@@ -352,7 +367,7 @@ export function AreaChart({
         xAxis: {
           type: 'datetime',
           crosshair: tooltip?.kind !== 'disabled',
-          plotBands: bands,
+          plotBands: xBands && xBands.length > 0 ? toHCPlotBands(xBands) : undefined,
           title: { text: xAxisTitle ?? '' },
         },
         yAxis: {
@@ -479,6 +494,8 @@ export interface GaugeProps {
   /** Percentage thresholds (0–100) of the min–max range. Drives 3-stop gradient. */
   thresholds?: { warn: number; good: number };
   thickness?: 'thin' | 'normal' | 'thick';
+  /** `solid` = filled donut (default); `arc` = needle-style clock-face gauge. */
+  gaugeType?: 'solid' | 'arc';
   height?: number;
 }
 
@@ -490,52 +507,69 @@ export function Gauge({
   centerLabel = '',
   thresholds = { warn: 50, good: 85 },
   thickness = 'normal',
+  gaugeType = 'solid',
   height,
 }: GaugeProps) {
   const innerRadius = THICKNESS_MAP[thickness];
-  const warnStop = thresholds.warn / 100;
-  const goodStop = thresholds.good / 100;
+  const isArc = gaugeType === 'arc';
+  const range = max - min;
+  // Normalize to 0–1 relative to axis range, then create near-discrete step stops
+  // so each zone shows a solid token color instead of a gradient blend.
+  const warnStop = (thresholds.warn - min) / range;
+  const goodStop = (thresholds.good - min) / range;
+  const ε = 0.001;
   return (
     <PlaygroundChart
       height={height ?? 320}
       options={{
-        chart: { type: 'solidgauge', backgroundColor: 'transparent' },
+        chart: { type: isArc ? 'gauge' : 'solidgauge', backgroundColor: 'transparent' },
         title: { text: '' },
         pane: {
           center: ['50%', '60%'],
           size: '100%',
           startAngle: -120,
           endAngle: 120,
-          background: [{ backgroundColor: '#e2e4e9', innerRadius, outerRadius: '100%', shape: 'arc' }],
+          borderWidth: 0,
+          borderColor: 'transparent',
+          background: isArc ? [] : [
+            { backgroundColor: '#e2e4e9', borderWidth: 0, borderColor: 'transparent', innerRadius, outerRadius: '100%', shape: 'arc' },
+          ],
         },
         yAxis: {
           min,
           max,
           stops: [
-            [0,        STATUS_HEX.danger],
-            [warnStop, STATUS_HEX.warning],
-            [goodStop, STATUS_HEX.success],
+            [0,             STATUS_HEX.danger],
+            [warnStop - ε,  STATUS_HEX.danger],
+            [warnStop,      STATUS_HEX.warning],
+            [goodStop - ε,  STATUS_HEX.warning],
+            [goodStop,      STATUS_HEX.success],
           ] as Array<[number, string]>,
-          tickPositions: [],
-          labels: { enabled: false },
+          tickPositions: isArc ? undefined : [],
+          labels: { enabled: isArc },
         },
         tooltip: { enabled: false },
         credits: { enabled: false },
         plotOptions: {
           solidgauge: {
+            borderWidth: 0,
+            borderColor: 'transparent',
+            linecap: 'round',
             dataLabels: {
               enabled: true,
               useHTML: true,
+              borderWidth: 0,
+              backgroundColor: 'none',
               y: -20,
               formatter: function () {
-                return `<div style="text-align:center;font-family:Inter,sans-serif"><div style="font-size:48px;font-weight:700">${this.y}${unit}</div><div style="font-size:14px;color:#6b7280;margin-top:4px">${centerLabel}</div></div>`;
+                return `<div style="text-align:center;font-family:${CHART_FONT_FAMILY}"><div style="font-size:48px;font-weight:700">${this.y}${unit}</div><div style="font-size:14px;color:#6b7280;margin-top:4px">${centerLabel}</div></div>`;
               },
             },
             innerRadius,
             radius: '100%',
           },
         } as Highcharts.PlotOptions,
-        series: [{ type: 'solidgauge', name: centerLabel, data: [value] }],
+        series: [{ type: isArc ? 'gauge' : 'solidgauge', name: centerLabel, data: [value] }],
       }}
     />
   );
@@ -669,7 +703,7 @@ export function Sparkline({
   const latest    = data[data.length - 1]?.[1];
 
   return (
-    <div style={{ width, padding: 12, borderRadius: 8, background: '#f5f6f8', fontFamily: 'Inter, -apple-system, sans-serif' }}>
+    <div style={{ width, padding: 12, borderRadius: 8, background: '#f5f6f8', fontFamily: CHART_FONT_FAMILY }}>
       {showLatestValue && caption && (
         <>
           <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 2 }}>{caption}</div>
@@ -769,7 +803,7 @@ export function PieDonutChart({
         title: { text: '' },
         subtitle: isDonut && centerLabel ? {
           useHTML: true,
-          text: `<div style="text-align:center;font-family:Inter,sans-serif;line-height:1.3"><div style="font-size:22px;font-weight:700;color:#1a1d23">${totalStr}</div><div style="font-size:11px;color:#6b7280;margin-top:2px">${centerLabel}</div></div>`,
+          text: `<div style="text-align:center;font-family:${CHART_FONT_FAMILY};line-height:1.3"><div style="font-size:22px;font-weight:700;color:#1a1d23">${totalStr}</div><div style="font-size:11px;color:#6b7280;margin-top:2px">${centerLabel}</div></div>`,
           verticalAlign: 'middle',
           floating: true,
           y: 0,
@@ -879,8 +913,8 @@ function scheduleToPoints(
 export function ScheduleChart({
   days,
   schedule,
-  activeColor   = '#226ecd', // var(--vc-1)      blue-600
-  inactiveColor = '#838e98', // var(--vc-neutral) neutral-400
+  activeColor   = LIGHT_CHART.vc1,      // --vc-1      blue-600
+  inactiveColor = LIGHT_CHART.vdMid, // neutral-75 #dce0e4 (same as diverging midpoint)
   showInactive  = true,
   pointWidth    = 18,
   tooltip       = 'enabled',
@@ -938,100 +972,3 @@ export function ScheduleChart({
   );
 }
 
-// ─── After Verity layout panel ────────────────────────────────────────────────
-
-const panelWrapStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0,1fr) 360px',
-  gap: 24,
-  alignItems: 'flex-start',
-  fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-  fontSize: 13,
-  color: '#111827',
-};
-
-const badgeStyle: CSSProperties = {
-  display: 'inline-block',
-  fontSize: 11,
-  fontWeight: 700,
-  background: '#D1FAE5',
-  color: '#065F46',
-  padding: '2px 8px',
-  borderRadius: 4,
-  letterSpacing: 0.4,
-  marginRight: 8,
-};
-
-const subtitleStyle: CSSProperties = { fontSize: 11, color: '#9CA3AF' };
-
-const rightPanelStyle: CSSProperties = {
-  padding: 16,
-  borderRadius: 8,
-  background: '#F9FAFB',
-  border: '1px solid #E5E7EB',
-};
-
-const labelStyle: CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  textTransform: 'uppercase',
-  letterSpacing: 0.5,
-  color: '#6B7280',
-  marginBottom: 8,
-  marginTop: 0,
-};
-
-const codeBlockStyle: CSSProperties = {
-  margin: 0,
-  background: '#1E293B',
-  color: '#E2E8F0',
-  padding: 12,
-  borderRadius: 6,
-  fontSize: 11,
-  lineHeight: 1.7,
-  overflowX: 'auto',
-  whiteSpace: 'pre-wrap',
-  wordBreak: 'break-word',
-};
-
-export function AfterVerityPanel({
-  primitiveName,
-  consumerCode,
-  source,
-  children,
-}: {
-  primitiveName: string;
-  consumerCode: string;
-  source: { surface: string; file: string };
-  children: ReactNode;
-}) {
-  return (
-    <div style={panelWrapStyle}>
-      <div>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: 12 }}>
-          <span style={badgeStyle}>AFTER &mdash; {primitiveName}</span>
-          <span style={subtitleStyle}>Rendered via simulated Verity primitive</span>
-        </div>
-        {children}
-      </div>
-      <div style={rightPanelStyle}>
-        <div style={labelStyle}>Consumer code</div>
-        <pre style={codeBlockStyle}>
-          <code>{consumerCode}</code>
-        </pre>
-        <div style={{ ...labelStyle, marginTop: 14 }}>Production source</div>
-        <div style={{ fontSize: 13, color: '#374151', marginBottom: 4 }}>{source.surface}</div>
-        <div
-          style={{
-            fontSize: 10,
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-            color: '#6B7280',
-            wordBreak: 'break-all',
-          }}
-        >
-          {source.file}
-        </div>
-      </div>
-    </div>
-  );
-}

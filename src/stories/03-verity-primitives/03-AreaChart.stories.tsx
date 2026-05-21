@@ -5,18 +5,14 @@ import {
   type PlotBand,
   type ZoneConfig,
   PALETTE_HEX,
+  toHCPlotBands,
 } from '../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries, fakeArearange } from '../../utils/fakeData';
+import { AREA_ARG_TYPES } from '../argTypes';
 
-// Series starts at 2026-05-01T08:00:00Z = 1746086400000.
-const DEMO_BANDS: PlotBand[] = [
-  { from: 1746090000000, to: 1746092700000, color: 'rgba(239,68,68,0.15)',  label: 'Alert: motion'    },
-  { from: 1746104400000, to: 1746111600000, color: 'rgba(245,158,11,0.12)', label: 'Alert: temp high' },
-];
-
-// Zones for single-series area (data around base 50, range ~28–72).
+// Y-zones for single-series area (data around base 50, range ~28–72).
 // Omit `color` to let colorPalette drive zone coloring.
-const DEMO_ZONES: ZoneConfig[] = [
+const DEMO_Y_ZONES: ZoneConfig[] = [
   { value: 40 },  // ≤ 40 → zone 0 (danger with status palette)
   { value: 55 },  // 40–55 → zone 1 (warning)
   {},             // > 55  → zone 2 (success)
@@ -26,8 +22,8 @@ type Args = {
   variant:      'area' | 'areaspline' | 'arearange';
   stacking:     'normal' | 'percent' | 'none';
   fillOpacity:  number;
-  bands:        PlotBand[];
-  zones:        ZoneConfig[];
+  xBands:       PlotBand[];
+  yZones:       ZoneConfig[];
   xAxisTitle:   string;
   yAxisTitle:   string;
   showLegend:   boolean;
@@ -49,68 +45,7 @@ const meta: Meta<Args> = {
     },
   },
   argTypes: {
-    variant: {
-      control: 'inline-radio',
-      options: ['area', 'areaspline', 'arearange'],
-      description: '`variant?: "area" | "areaspline" | "arearange"` — maps `chart.type`. `arearange` expects `[ts, lo, hi]` data tuples.',
-      table: { type: { summary: '"area" | "areaspline" | "arearange"' }, defaultValue: { summary: '"area"' } },
-    },
-    stacking: {
-      control: 'inline-radio',
-      options: ['none', 'normal', 'percent'],
-      description: '`stacking?: "normal" | "percent" | "none"` — maps `plotOptions.area.stacking`. Ignored for `arearange`.',
-      table: { type: { summary: '"normal" | "percent" | "none"' }, defaultValue: { summary: '"none"' } },
-    },
-    fillOpacity: {
-      control: { type: 'range', min: 0, max: 1, step: 0.05 },
-      description: '`fillOpacity?: number` — maps `plotOptions.area.fillOpacity`. Locked to 1 when `stacking="percent"`.',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '0.18' } },
-    },
-    bands: {
-      control: 'object',
-      description:
-        '`bands?: PlotBand[]` — `{ from, to, color, label? }` x-axis time-range overlays. ' +
-        '`from`/`to` are Unix timestamps (ms). Use a low-opacity fill (e.g. `rgba(239,68,68,0.15)`) so the area fill remains readable. ' +
-        'Ignored when `stacking` is not `"none"` (stacked area obscures bands). ' +
-        'Default anchored to 2026-05-01T08:00Z.',
-      table: { type: { summary: 'PlotBand[]' } },
-    },
-    zones: {
-      control: 'object',
-      description:
-        '`zones?: ZoneConfig[]` — `{ value?, color? }` threshold bands on the series fill. ' +
-        'Each entry colors from the previous threshold up to `value`; omit `value` on the last entry. ' +
-        'Omit `color` to let `colorPalette` drive colors. Ignored for `arearange` and stacked variants. ' +
-        'Try `colorPalette="status"` with the default zones to see danger/warning/success coloring.',
-      table: { type: { summary: 'ZoneConfig[]' } },
-    },
-    xAxisTitle: {
-      control: 'text',
-      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`. Maps `xAxis.title.text`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    yAxisTitle: {
-      control: 'text',
-      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`. Maps `yAxis.title.text`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    showLegend: {
-      control: 'boolean',
-      description: '`showLegend?: boolean` (base prop).',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['shared-crosshair', 'point', 'disabled'],
-      description: '`tooltip?: { kind: "shared-crosshair" | "point" | "disabled" }` (base prop).',
-      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"shared-crosshair"' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop) — drives series and zone colors across stacked variants.',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
-    },
+    ...AREA_ARG_TYPES,
     series: {
       control: false,
       description: '`series: SingleSeries[] | RangeSeries[]` — data shape is variant-dependent. `arearange` expects `[ts, lo, hi]` tuples.',
@@ -127,8 +62,8 @@ export const Playground: Story = {
     variant:      'area',
     stacking:     'none',
     fillOpacity:  0.18,
-    bands:        DEMO_BANDS,
-    zones:        DEMO_ZONES,
+    xBands:       [],
+    yZones:       DEMO_Y_ZONES,
     xAxisTitle:   '',
     yAxisTitle:   '',
     showLegend:   false,
@@ -149,9 +84,9 @@ export const Playground: Story = {
     const isSingleNoRange = args.variant !== 'arearange' && args.stacking === 'none';
     const hcType = args.variant === 'arearange' ? 'arearange' : args.variant;
 
-    // Zone colors: explicit override if set, else palette by index.
-    const resolvedZones = isSingleNoRange && args.zones.length > 0
-      ? args.zones.map((z, i) => ({ ...z, color: z.color ?? palette[i % palette.length] }))
+    // Y-zone colors: explicit override if set, else palette by index.
+    const resolvedZones = isSingleNoRange && args.yZones.length > 0
+      ? args.yZones.map((z, i) => ({ ...z, color: z.color ?? palette[i % palette.length] }))
       : undefined;
 
     let series: Highcharts.SeriesOptionsType[] = [];
@@ -175,8 +110,8 @@ export const Playground: Story = {
           xAxis: {
             type: 'datetime',
             crosshair: args.tooltip !== 'disabled',
-            plotBands: isSingleNoRange && args.bands.length > 0
-              ? (args.bands as Highcharts.XAxisPlotBandsOptions[])
+            plotBands: isSingleNoRange && args.xBands.length > 0
+              ? toHCPlotBands(args.xBands)
               : undefined,
             title: { text: args.xAxisTitle },
           },

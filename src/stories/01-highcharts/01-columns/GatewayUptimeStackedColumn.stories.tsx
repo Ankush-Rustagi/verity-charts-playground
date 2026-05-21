@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import { ColumnChart } from '../../../primitives/VeritySimPrimitives';
 import { fakeColumnSeries } from '../../../utils/fakeData';
+import { COLUMN_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Columns/Gateway Uptime (stacked, datetime)',
@@ -82,8 +83,8 @@ type ColumnAfterArgs = {
   xAxisTitle:    string;
   yAxisTitle:    string;
 };
-// colorPalette is intentionally absent: all series carry `status` props, so
-// the primitive's status token always wins over the palette.
+// colorPalette="status" is set explicitly so the series' status hints activate.
+// With the new applyPalette logic, status only drives color when colorPalette="status".
 
 type AfterVerityStory = StoryObj<ColumnAfterArgs>;
 
@@ -98,12 +99,12 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     yAxisTitle:    'Minutes',
   },
   argTypes: {
-    stacking:      { control: 'inline-radio', options: ['none', 'normal'], description: 'Column stacking mode.' },
-    columnDensity: { control: 'inline-radio', options: ['tight', 'normal', 'loose'], description: 'Column width relative to bar spacing.' },
-    showLegend:    { control: 'boolean', description: 'Show/hide the chart legend.' },
-    tooltip:       { control: 'inline-radio', options: ['shared-crosshair', 'point', 'disabled'], description: 'Tooltip interaction mode.' },
-    xAxisTitle:    { control: 'text', description: 'X-axis label.' },
-    yAxisTitle:    { control: 'text', description: 'Y-axis label.' },
+    stacking:      COLUMN_ARG_TYPES.stacking,
+    columnDensity: COLUMN_ARG_TYPES.columnDensity,
+    showLegend:    COLUMN_ARG_TYPES.showLegend,
+    tooltip:       COLUMN_ARG_TYPES.tooltip,
+    xAxisTitle:    COLUMN_ARG_TYPES.xAxisTitle,
+    yAxisTitle:    COLUMN_ARG_TYPES.yAxisTitle,
   },
   parameters: {
     docs: {
@@ -140,6 +141,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
         showLegend={args.showLegend}
         xAxisTitle={args.xAxisTitle}
         yAxisTitle={args.yAxisTitle}
+        colorPalette="status"
         series={[
           { name: 'Online',   data: online.map((v, i) => [Date.UTC(2026, 4, 1, i), v] as [number, number]), status: 'success' },
           { name: 'Degraded', data: degraded.map((v, i) => [Date.UTC(2026, 4, 1, i), v] as [number, number]), status: 'danger' },

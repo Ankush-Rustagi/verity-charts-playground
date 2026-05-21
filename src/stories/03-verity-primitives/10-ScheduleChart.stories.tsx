@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ScheduleChart } from '../../primitives/VeritySimPrimitives';
 import type { ScheduleDayEntry } from '../../primitives/VeritySimPrimitives';
+import { SCHEDULE_ARG_TYPES } from '../argTypes';
 
 // ─── Demo data ────────────────────────────────────────────────────────────────
 
@@ -51,34 +52,7 @@ const meta: Meta<Args> = {
       },
     },
   },
-  argTypes: {
-    showInactive: {
-      control: 'boolean',
-      description: '`showInactive?: boolean` — render grey bars for inactive hours. Default `true`.',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
-    },
-    pointWidth: {
-      control: { type: 'range', min: 8, max: 36, step: 2 },
-      description: '`pointWidth?: number` — row bar height in pixels. Default `18`.',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '18' } },
-    },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['enabled', 'disabled'],
-      description: '`tooltip?: "enabled" | "disabled"` — show active-interval tooltip on hover.',
-      table: { type: { summary: '"enabled" | "disabled"' }, defaultValue: { summary: '"enabled"' } },
-    },
-    activeColor: {
-      control: 'color',
-      description: '`activeColor?: string` — color for active-interval bars. Default: `--vc-1` (`#226ecd`, blue-600).',
-      table: { type: { summary: 'string (CSS color)' }, defaultValue: { summary: '#226ecd' } },
-    },
-    inactiveColor: {
-      control: 'color',
-      description: '`inactiveColor?: string` — color for inactive-gap bars. Default: `--vc-neutral` (`#838e98`, neutral-400).',
-      table: { type: { summary: 'string (CSS color)' }, defaultValue: { summary: '#838e98' } },
-    },
-  },
+  argTypes: { ...SCHEDULE_ARG_TYPES },
 };
 
 export default meta;
@@ -93,7 +67,7 @@ export const Playground: Story = {
     pointWidth:    18,
     tooltip:       'enabled',
     activeColor:   '#226ecd',
-    inactiveColor: '#838e98',
+    inactiveColor: '#a0adb8',
   },
   render: (args) => (
     <ScheduleChart

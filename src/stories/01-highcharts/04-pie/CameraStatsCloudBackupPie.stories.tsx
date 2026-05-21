@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { PIE_DONUT_ARG_TYPES, INNER_RADIUS_MAP, type InnerRadiusSize } from '../../argTypes';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
-import { PieDonutChart, AfterVerityPanel } from '../../../primitives/VeritySimPrimitives';
+import { PieDonutChart } from '../../../primitives/VeritySimPrimitives';
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
 
 const CLOUD_BACKUP_SEGMENTS = [
   { name: 'Backed up', y: 18.4, color: '#16a34a' },
@@ -38,7 +40,7 @@ export const Default: Story = {
         title: { text: '' },
         subtitle: {
           useHTML: true,
-          text: '<div style="text-align:center;font-family:Inter,sans-serif;line-height:1.3"><div style="font-size:22px;font-weight:700;color:#111827">24.0 GB</div><div style="font-size:11px;color:#6B7280;margin-top:2px">total</div></div>',
+          text: `<div style="text-align:center;font-family:${CHART_FONT_FAMILY};line-height:1.3"><div style="font-size:22px;font-weight:700;color:#111827">${TOTAL_GB.toFixed(1)} GB</div><div style="font-size:11px;color:#6B7280;margin-top:2px">total</div></div>`,
           verticalAlign: 'middle',
           floating: true,
           y: 0,
@@ -67,7 +69,7 @@ export const Default: Story = {
 };
 
 type PieAfterArgs = {
-  innerRadius: number;
+  innerRadius: InnerRadiusSize;
   showLabels:  'always' | 'hover' | 'none';
   showLegend:  boolean;
   backedUp:    number;
@@ -81,7 +83,7 @@ type AfterVerityStory = StoryObj<PieAfterArgs>;
 export const AfterVerityHighcharts: AfterVerityStory = {
   name: 'After Verity Highcharts: PieDonutChart + status palette',
   args: {
-    innerRadius: 60,
+    innerRadius: 'l',
     showLabels:  'hover',
     showLegend:  true,
     backedUp:    18.4,
@@ -90,20 +92,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     skipped:     2.2,
   },
   argTypes: {
-    innerRadius: {
-      control: { type: 'range', min: 0, max: 100, step: 1 },
-      description: '`innerRadius` — donut hole size as a 0–100 percentage. `0` = full pie, `60` = standard donut.',
-    },
-    showLabels: {
-      control: 'inline-radio',
-      options: ['always', 'hover', 'none'],
-      description: '`showLabels` — when to render data labels.',
-    },
-    showLegend: { control: 'boolean', description: '`showLegend` — show legend below chart.' },
-    backedUp: { control: { type: 'range', min: 0, max: 100, step: 0.1 }, description: 'Backed up (GB).', table: { category: 'Data' } },
-    pending:  { control: { type: 'range', min: 0, max: 30,  step: 0.1 }, description: 'Pending (GB).',   table: { category: 'Data' } },
-    failed:   { control: { type: 'range', min: 0, max: 10,  step: 0.1 }, description: 'Failed (GB).',    table: { category: 'Data' } },
-    skipped:  { control: { type: 'range', min: 0, max: 20,  step: 0.1 }, description: 'Skipped (GB).',   table: { category: 'Data' } },
+    ...PIE_DONUT_ARG_TYPES,
   },
   parameters: {
     docs: {
@@ -130,25 +119,9 @@ export const AfterVerityHighcharts: AfterVerityStory = {
       },
     },
   },
-  render: (args) => (
-    <AfterVerityPanel
-      primitiveName="PieDonutChart"
-      consumerCode={`<PieDonutChart
-  slices={[
-    { name: 'Backed up', y: 18.4, status: 'success' },
-    { name: 'Pending',   y: 2.8,  status: 'warning' },
-    { name: 'Failed',    y: 0.6,  status: 'danger'  },
-    { name: 'Skipped',   y: 2.2,  status: 'neutral' },
-  ]}
-  colorPalette="status"
-  innerRadius="60%"
-  centerLabel="GB total"
-/>`}
-      source={{
-        surface: 'Camera Stats — single camera cloud backup',
-        file: 'src/command/ui/camera-page/routes/stats/components/device-analytics/single-camera-cloud-backup/CloudBackupPie.tsx',
-      }}
-    >
+  render: (args) => {
+    const total = (args.backedUp + args.pending + args.failed + args.skipped).toFixed(1);
+    return (
       <PieDonutChart
         slices={[
           { name: 'Backed up', y: args.backedUp, status: 'success' },
@@ -157,11 +130,11 @@ export const AfterVerityHighcharts: AfterVerityStory = {
           { name: 'Skipped',   y: args.skipped,  status: 'neutral' },
         ].filter((s) => s.y > 0)}
         colorPalette="status"
-        innerRadius={`${args.innerRadius}%`}
+        innerRadius={INNER_RADIUS_MAP[args.innerRadius]}
         showLabels={args.showLabels}
         showLegend={args.showLegend}
-        centerLabel="GB total"
+        centerLabel={`${total} GB total`}
       />
-    </AfterVerityPanel>
-  ),
+    );
+  },
 };

@@ -36,11 +36,10 @@ From the audit at `documentation/20-core-projects/ai-in-command/ai-platform-stra
     <tr><td><code>ThresholdEditorChart</code></td><td>spline + plotBands + draggable areasplines</td><td>22 files (entire sensor stack)</td></tr>
     <tr><td><code>Sparkline</code></td><td>minimal area/spline tile</td><td>2 files (Live Bandwidth, Camera Network Indicator)</td></tr>
     <tr><td><code>PieDonutChart</code></td><td>pie / donut</td><td>1 file (Camera Stats cloud backup); new primitive, no current Highcharts consumers</td></tr>
-    <tr><td><code>ExtendChart</code></td><td>escape hatch for custom <code>chart.renderer</code> drawing</td><td>2 files (Gateway nav arrows, sensor live-point label)</td></tr>
   </tbody>
 </table>
 
-Plus 4 files left in the escape hatch by design: Unite Elapsed Clock (literal `gauge`, one-off), GatewayHistoricalGpsTimeline (line with GPS-specific behaviors), `useHighchartsInvestigationData` (sensor secondary axis investigation), and the one-off intercoms `accessibility.enabled` toggle.
+Plus files left in the escape hatch by design: Unite Elapsed Clock (literal `gauge`, one-off), GatewayHistoricalGpsTimeline (line with GPS-specific behaviors), Gateway nav arrows (custom `chart.renderer` SVG overlay), `useHighchartsInvestigationData` (sensor secondary axis investigation), and the one-off intercoms `accessibility.enabled` toggle.
 
 ## Coverage matrix: inventory surface to primitive
 

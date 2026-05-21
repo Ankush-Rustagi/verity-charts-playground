@@ -1,3 +1,4 @@
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Group } from '@visx/group';
 import { AxisBottom, AxisLeft } from '@visx/axis';
@@ -7,6 +8,7 @@ import { GridRows } from '@visx/grid';
 import { curveMonotoneX } from '@visx/curve';
 import { LineChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../../utils/fakeData';
+import { LINE_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta = {
   title: '02 visx/Lines/Gateway Throughput (visx half of Gateway detail)',
@@ -38,7 +40,7 @@ export const Default: Story = {
     const yScale = scaleLinear<number>({ domain: [0, yMax], range: [innerHeight, 0], nice: true });
     const livePoint = series[series.length - 1];
     return (
-      <svg width={width} height={height} style={{ background: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}>
+      <svg width={width} height={height} style={{ background: '#FFFFFF', fontFamily: CHART_FONT_FAMILY }}>
         <Group left={margin.left} top={margin.top}>
           <GridRows scale={yScale} width={innerWidth} stroke="#E5E7EB" strokeDasharray="2,2" />
           <LinePath
@@ -80,6 +82,7 @@ type LineAfterArgs = {
   colorPalette: ColorPalette;
   xAxisTitle:   string;
   yAxisTitle:   string;
+  seriesName:   string;
 };
 
 type AfterVerityStory = StoryObj<LineAfterArgs>;
@@ -91,18 +94,24 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     markers:      false,
     showLegend:   false,
     tooltip:      'shared-crosshair',
-    colorPalette: 'categorical',
+    colorPalette: 'status',
     xAxisTitle:   '',
     yAxisTitle:   'Mbps',
+    seriesName:   'Throughput (Mbps)',
   },
   argTypes: {
-    smooth:       { control: 'boolean', description: 'Smooth spline interpolation vs. straight line segments.' },
-    markers:      { control: 'boolean', description: 'Show data point markers on the line.' },
-    showLegend:   { control: 'boolean', description: 'Show/hide the chart legend.' },
-    tooltip:      { control: 'inline-radio', options: ['shared-crosshair', 'point', 'disabled'], description: 'Tooltip interaction mode.' },
-    colorPalette: { control: 'inline-radio', options: ['categorical', 'status', 'sequential', 'diverging'], description: 'Token-based color palette.' },
-    xAxisTitle:   { control: 'text', description: 'X-axis label.' },
-    yAxisTitle:   { control: 'text', description: 'Y-axis label.' },
+    smooth:       LINE_ARG_TYPES.smooth,
+    markers:      LINE_ARG_TYPES.markers,
+    showLegend:   LINE_ARG_TYPES.showLegend,
+    tooltip:      LINE_ARG_TYPES.tooltip,
+    colorPalette: LINE_ARG_TYPES.colorPalette,
+    xAxisTitle:   LINE_ARG_TYPES.xAxisTitle,
+    yAxisTitle:   LINE_ARG_TYPES.yAxisTitle,
+    seriesName: {
+      control: 'text',
+      description: 'Label for the data series shown in legend and tooltip.',
+      table: { type: { summary: 'string' }, defaultValue: { summary: 'Throughput (Mbps)' } },
+    },
   },
   parameters: {
     docs: {
@@ -131,7 +140,8 @@ export const AfterVerityHighcharts: AfterVerityStory = {
         colorPalette={args.colorPalette}
         xAxisTitle={args.xAxisTitle}
         yAxisTitle={args.yAxisTitle}
-        series={[{ name: 'Throughput (Mbps)', data: series as [number, number][], status: 'success' }]}
+        series={[{ name: args.seriesName, data: series as [number, number][], status: 'success' }]}
+        height={320}
       />
     );
   },

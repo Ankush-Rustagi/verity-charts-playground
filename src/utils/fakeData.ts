@@ -1,3 +1,5 @@
+import { BAND_COLORS } from '../primitives/chartColors';
+
 const SEED_DEFAULT = 1729;
 
 function mulberry32(seed: number) {
@@ -115,7 +117,7 @@ export function fakePlotBands({
   spacingMs?: number;
   bandWidthMs?: number;
 } = {}): { from: number; to: number; color: string; label: string }[] {
-  const palette = ['rgba(255, 99, 132, 0.18)', 'rgba(255, 159, 64, 0.18)', 'rgba(255, 205, 86, 0.18)'];
+  const palette = [BAND_COLORS.danger, BAND_COLORS.warning, BAND_COLORS.neutral];
   const labels = ['Alert: motion', 'Alert: temperature high', 'Alert: door ajar'];
   const startMs = start.getTime();
   const bands = [];

@@ -3,6 +3,8 @@ import Highcharts from 'highcharts';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import { ColumnChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeColumnSeries } from '../../../utils/fakeData';
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
+import { COLUMN_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Columns/Alerts Trends (Cameras Analytics)',
@@ -57,7 +59,7 @@ export const Default: Story = {
             formatter: function () {
               const point = (this as Highcharts.TooltipFormatterContextObject).points?.[0];
               if (!point) return '';
-              return `<div style="font-family:Inter,sans-serif"><strong>${point.x}</strong><br/>${point.y} crossings</div>`;
+              return `<div style="font-family:${CHART_FONT_FAMILY}"><strong>${point.x}</strong><br/>${point.y} crossings</div>`;
             },
           },
           plotOptions: {
@@ -94,58 +96,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     dataLabels: false,
     colorPalette: 'categorical',
   },
-  argTypes: {
-    stacking: {
-      control: 'inline-radio',
-      options: ['none', 'normal', 'percent'],
-      description: '`stacking?: "normal" | "percent" | "none"`',
-      table: { type: { summary: '"normal" | "percent" | "none"' }, defaultValue: { summary: '"none"' } },
-    },
-    columnDensity: {
-      control: 'inline-radio',
-      options: ['tight', 'normal', 'loose'],
-      description: '`columnDensity?: "tight" | "normal" | "loose"`',
-      table: { type: { summary: '"tight" | "normal" | "loose"' }, defaultValue: { summary: '"normal"' } },
-    },
-    axisKind: {
-      control: 'inline-radio',
-      options: ['datetime', 'categorical'],
-      description: '`xAxis: DatetimeAxis | CategoryAxis`',
-      table: { type: { summary: '"datetime" | "categorical"' }, defaultValue: { summary: '"categorical"' } },
-    },
-    xAxisTitle: {
-      control: 'text',
-      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '"Hour of day"' } },
-    },
-    yAxisTitle: {
-      control: 'text',
-      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '"Crossings"' } },
-    },
-    showLegend: {
-      control: 'boolean',
-      description: '`showLegend?: boolean` (base prop)',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['shared-crosshair', 'point', 'disabled'],
-      description: '`tooltip?: { kind: "shared-crosshair" | "point" | "disabled" }` (base prop)',
-      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"shared-crosshair"' } },
-    },
-    dataLabels: {
-      control: 'boolean',
-      description: '`dataLabels?: boolean`',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop)',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
-    },
-  },
+  argTypes: { ...COLUMN_ARG_TYPES },
   parameters: {
     docs: {
       description: {
@@ -189,6 +140,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
             : [{ name: 'Crossings', data: args.axisKind === 'categorical' ? values : datetimeData }]
         }
         tooltip={{ kind: args.tooltip }}
+        dataLabels={args.dataLabels}
       />
     );
   },

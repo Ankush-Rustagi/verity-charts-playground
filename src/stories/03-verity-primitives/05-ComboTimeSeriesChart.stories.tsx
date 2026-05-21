@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { PlaygroundChart } from '../../primitives/PlaygroundChart';
 import { type ColorPalette, PALETTE_HEX } from '../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../utils/fakeData';
+import { COMBO_ARG_TYPES } from '../argTypes';
 
 type Args = {
   dualAxis: boolean;
@@ -25,41 +26,17 @@ const meta: Meta<Args> = {
     },
   },
   argTypes: {
-    dualAxis: {
-      control: 'boolean',
-      description: '`dualAxis?: boolean` — adds an opposing right-side y-axis. Maps `yAxis: [{...}, {...opposite:true}]`.',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    stacking: {
-      control: 'inline-radio',
-      options: ['none', 'normal', 'percent'],
-      description: '`stacking?: "normal" | "percent" | "none"` — column stacking mode. Maps `plotOptions.column.stacking`.',
-      table: { type: { summary: '"normal" | "percent" | "none"' }, defaultValue: { summary: '"none"' } },
-    },
-    primaryAxisLabel: {
-      control: 'text',
-      description: '`yAxes[0].title` — label for the primary (left) y-axis.',
-      table: { type: { summary: 'string' } },
-    },
-    secondaryAxisLabel: {
-      control: 'text',
-      description: '`yAxes[1].title` — label for the secondary (right) y-axis. Only shown when `dualAxis` is set.',
-      table: { type: { summary: 'string' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop) — drives series colors by index across all column and line series.',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
-    },
+    ...COMBO_ARG_TYPES,
     seriesAxisBinding: {
       control: false,
-      description: '`series[i].yAxis: 0 | 1` — binds a series to the primary or secondary axis. Replaces manual `yAxis` index tracking.',
+      description:
+        '`series[i].yAxis: 0 | 1` — binds a series to the primary or secondary axis. Replaces manual `yAxis` index tracking.',
       table: { type: { summary: '0 | 1' }, category: 'Proposed API' },
     },
     onTimeRangeBrush: {
       control: false,
-      description: '`onTimeRangeBrush?: (range: { start: Date; end: Date }) => void` — maps Highcharts Stock zoom/pan events.',
+      description:
+        '`onTimeRangeBrush?: (range: { start: Date; end: Date }) => void` — maps Highcharts Stock zoom/pan events.',
       table: { type: { summary: '(range: { start: Date; end: Date }) => void' }, category: 'Proposed API' },
     },
   },

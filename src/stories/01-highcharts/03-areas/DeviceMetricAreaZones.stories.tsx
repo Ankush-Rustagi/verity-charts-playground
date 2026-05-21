@@ -6,6 +6,7 @@ import {
   type ZoneConfig,
 } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../../utils/fakeData';
+import { AREA_ARG_TYPES } from '../../argTypes';
 
 // RSSI data: base −60 dBm, range roughly −80 to −40.
 // Zones partition the signal quality range; omit `color` to let colorPalette drive.
@@ -34,7 +35,7 @@ type AreaArgs = {
   variant:      'area' | 'areaspline' | 'arearange';
   stacking:     'normal' | 'percent' | 'none';
   fillOpacity:  number;
-  zones:        ZoneConfig[];
+  yZones:       ZoneConfig[];
   xAxisTitle:   string;
   yAxisTitle:   string;
   showLegend:   boolean;
@@ -86,62 +87,17 @@ export const Default: Story = {
 
 export const AfterVerityHighcharts: AfterVerityStory = {
   name: 'After Verity Highcharts: AreaChart + zones',
-  args: { variant: 'area', stacking: 'none', fillOpacity: 0.2, zones: DEMO_RSSI_ZONES, xAxisTitle: '', yAxisTitle: 'RSSI (dBm)', showLegend: false, tooltip: 'point', colorPalette: 'status' },
+  args: { variant: 'area', stacking: 'none', fillOpacity: 0.2, yZones: DEMO_RSSI_ZONES, xAxisTitle: '', yAxisTitle: 'RSSI (dBm)', showLegend: false, tooltip: 'point', colorPalette: 'status' },
   argTypes: {
-    variant: {
-      control: 'inline-radio',
-      options: ['area', 'areaspline', 'arearange'],
-      description: '`variant?: "area" | "areaspline" | "arearange"`',
-      table: { type: { summary: '"area" | "areaspline" | "arearange"' }, defaultValue: { summary: '"area"' } },
-    },
-    stacking: {
-      control: 'inline-radio',
-      options: ['none', 'normal', 'percent'],
-      description: '`stacking?: "normal" | "percent" | "none"`',
-      table: { type: { summary: '"normal" | "percent" | "none"' }, defaultValue: { summary: '"none"' } },
-    },
-    fillOpacity: {
-      control: { type: 'range', min: 0, max: 1, step: 0.05 },
-      description: '`fillOpacity?: number`',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '0.2' } },
-    },
-    zones: {
-      control: 'object',
-      description:
-        '`zones?: ZoneConfig[]` — `{ value?, color? }` threshold bands on the series fill. ' +
-        'Each entry colors from the previous threshold up to `value`; omit `value` on the last entry. ' +
-        'Omit `color` to let `colorPalette` drive colors. ' +
-        'Default partitions RSSI quality tiers (≤ −70 dBm poor / −70 to −50 moderate / > −50 strong). ' +
-        'Edit thresholds to see realtime zone boundaries shift.',
-      table: { type: { summary: 'ZoneConfig[]' } },
-    },
-    xAxisTitle: {
-      control: 'text',
-      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    yAxisTitle: {
-      control: 'text',
-      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '"RSSI (dBm)"' } },
-    },
-    showLegend: {
-      control: 'boolean',
-      description: '`showLegend?: boolean` (base prop)',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['shared-crosshair', 'point', 'disabled'],
-      description: '`tooltip?: { kind: ... }` (base prop)',
-      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"point"' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop) — drives zone colors. `"status"` is canonical for signal quality: danger-first → poor signal gets red, strong gets green.',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"status"' } },
-    },
+    variant:      AREA_ARG_TYPES.variant,
+    stacking:     AREA_ARG_TYPES.stacking,
+    fillOpacity:  AREA_ARG_TYPES.fillOpacity,
+    yZones:       AREA_ARG_TYPES.yZones,
+    xAxisTitle:   AREA_ARG_TYPES.xAxisTitle,
+    yAxisTitle:   AREA_ARG_TYPES.yAxisTitle,
+    showLegend:   AREA_ARG_TYPES.showLegend,
+    tooltip:      AREA_ARG_TYPES.tooltip,
+    colorPalette: AREA_ARG_TYPES.colorPalette,
   },
   parameters: {
     docs: {
@@ -154,7 +110,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
   variant="area"
   colorPalette="status"
   series={[{ name: 'RSSI', data: rssiData }]}
-  zones={[
+  yZones={[
     { value: -70 },  // Poor     (≤ −70 dBm) → danger
     { value: -50 },  // Moderate (−70 to −50) → warning
     {},              // Strong   (> −50 dBm)  → success
@@ -170,8 +126,8 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     const data = fakeTimeSeries({ count: 96, base: -60, amplitude: 12, noise: 4, stepMs: 15 * 60 * 1000 });
     const secondSeries = fakeTimeSeries({ count: 96, base: -50, amplitude: 8, noise: 3, seed: 2, stepMs: 15 * 60 * 1000 });
     const isStacked = args.stacking !== 'none';
-    const activeZones = !isStacked && args.variant !== 'arearange' && args.zones.length > 0
-      ? args.zones
+    const activeZones = !isStacked && args.variant !== 'arearange' && args.yZones.length > 0
+      ? args.yZones
       : undefined;
     return (
       <AreaChart
@@ -190,7 +146,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
               ]
             : [{ name: 'RSSI (dBm)', data: data as [number, number][] }]
         }
-        zones={activeZones}
+        yZones={activeZones}
         tooltip={{ kind: args.tooltip }}
       />
     );

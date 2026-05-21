@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { COMBO_ARG_TYPES } from '../../argTypes';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import { ComboTimeSeriesChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries } from '../../../utils/fakeData';
@@ -59,11 +60,11 @@ export const Default: Story = {
 };
 
 type ComboAfterArgs = {
-  showLegend:   boolean;
-  tooltip:      'shared-crosshair' | 'point' | 'disabled';
-  colorPalette: ColorPalette;
-  xAxisTitle:   string;
-  yAxisTitle:   string;
+  showLegend:       boolean;
+  tooltip:          'shared-crosshair' | 'point' | 'disabled';
+  colorPalette:     ColorPalette;
+  xAxisTitle:       string;
+  primaryAxisTitle: string;
 };
 
 type AfterVerityStory = StoryObj<ComboAfterArgs>;
@@ -71,18 +72,18 @@ type AfterVerityStory = StoryObj<ComboAfterArgs>;
 export const AfterVerityHighcharts: AfterVerityStory = {
   name: 'After Verity Highcharts: ComboTimeSeriesChart + area',
   args: {
-    showLegend:   false,
-    tooltip:      'shared-crosshair',
-    colorPalette: 'categorical',
-    xAxisTitle:   '',
-    yAxisTitle:   'Participants',
+    showLegend:       false,
+    tooltip:          'shared-crosshair',
+    colorPalette:     'status',
+    xAxisTitle:       '',
+    primaryAxisTitle: 'Participants',
   },
   argTypes: {
-    showLegend:   { control: 'boolean', description: 'Show/hide the chart legend.' },
-    tooltip:      { control: 'inline-radio', options: ['shared-crosshair', 'point', 'disabled'], description: 'Tooltip interaction mode.' },
-    colorPalette: { control: 'inline-radio', options: ['categorical', 'status', 'sequential', 'diverging'], description: 'Token-based color palette.' },
-    xAxisTitle:   { control: 'text', description: 'X-axis label.' },
-    yAxisTitle:   { control: 'text', description: 'Y-axis (primary) label.' },
+    showLegend:       COMBO_ARG_TYPES.showLegend,
+    tooltip:          COMBO_ARG_TYPES.tooltip,
+    colorPalette:     COMBO_ARG_TYPES.colorPalette,
+    xAxisTitle:       COMBO_ARG_TYPES.xAxisTitle,
+    primaryAxisTitle: COMBO_ARG_TYPES.primaryAxisTitle,
   },
   parameters: {
     docs: {
@@ -114,7 +115,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
         showLegend={args.showLegend}
         colorPalette={args.colorPalette}
         xAxisTitle={args.xAxisTitle}
-        primaryAxis={{ title: args.yAxisTitle }}
+        primaryAxis={{ title: args.primaryAxisTitle }}
         tooltip={{ kind: args.tooltip }}
       />
     );

@@ -1,3 +1,4 @@
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
 import type { Meta, StoryObj } from '@storybook/react';
 import { Group } from '@visx/group';
 import { AxisBottom, AxisLeft } from '@visx/axis';
@@ -6,6 +7,7 @@ import { Bar } from '@visx/shape';
 import { GridRows } from '@visx/grid';
 import { ColumnChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeColumnSeries } from '../../../utils/fakeData';
+import { COLUMN_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta = {
   title: '02 visx/Bars/Cameras Analytics BarChart (forked visx kit)',
@@ -53,7 +55,7 @@ export const Default: Story = {
       nice: true,
     });
     return (
-      <svg width={width} height={height} style={{ background: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}>
+      <svg width={width} height={height} style={{ background: '#FFFFFF', fontFamily: CHART_FONT_FAMILY }}>
         <Group left={margin.left} top={margin.top}>
           <GridRows scale={yScale} width={innerWidth} stroke="#E5E7EB" strokeDasharray="2,2" />
           {values.map((v, i) => {
@@ -110,58 +112,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     dataLabels: false,
     colorPalette: 'categorical',
   },
-  argTypes: {
-    stacking: {
-      control: 'inline-radio',
-      options: ['none', 'normal', 'percent'],
-      description: '`stacking?: "normal" | "percent" | "none"`',
-      table: { type: { summary: '"normal" | "percent" | "none"' }, defaultValue: { summary: '"none"' } },
-    },
-    columnDensity: {
-      control: 'inline-radio',
-      options: ['tight', 'normal', 'loose'],
-      description: '`columnDensity?: "tight" | "normal" | "loose"`',
-      table: { type: { summary: '"tight" | "normal" | "loose"' }, defaultValue: { summary: '"normal"' } },
-    },
-    axisKind: {
-      control: 'inline-radio',
-      options: ['datetime', 'categorical'],
-      description: '`xAxis: DatetimeAxis | CategoryAxis`',
-      table: { type: { summary: '"datetime" | "categorical"' }, defaultValue: { summary: '"categorical"' } },
-    },
-    xAxisTitle: {
-      control: 'text',
-      description: '`xAxisTitle?: string` — shorthand for `xAxis.title`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    yAxisTitle: {
-      control: 'text',
-      description: '`yAxisTitle?: string` — shorthand for `yAxis.title`.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    showLegend: {
-      control: 'boolean',
-      description: '`showLegend?: boolean` (base prop)',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    tooltip: {
-      control: 'inline-radio',
-      options: ['shared-crosshair', 'point', 'disabled'],
-      description: '`tooltip?: { kind: "shared-crosshair" | "point" | "disabled" }` (base prop)',
-      table: { type: { summary: '"shared-crosshair" | "point" | "disabled"' }, defaultValue: { summary: '"shared-crosshair"' } },
-    },
-    dataLabels: {
-      control: 'boolean',
-      description: '`dataLabels?: boolean`',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'false' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop)',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
-    },
-  },
+  argTypes: { ...COLUMN_ARG_TYPES },
   render: (args) => {
     const { categories, values } = fakeColumnSeries({ count: 12, seed: 88 });
     const datetimeData = (vals: number[]): [number, number][] =>
@@ -180,6 +131,7 @@ export const AfterVerityHighcharts: AfterVerityStory = {
         dataLabels={args.dataLabels}
         series={[{ name: 'Value', data: primaryData }]}
         tooltip={{ kind: args.tooltip }}
+        height={320}
       />
     );
   },

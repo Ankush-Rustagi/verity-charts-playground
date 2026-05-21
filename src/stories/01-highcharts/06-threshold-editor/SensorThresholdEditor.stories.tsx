@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { PlaygroundChart } from '../../../primitives/PlaygroundChart';
 import { ThresholdEditorChart, type ColorPalette } from '../../../primitives/VeritySimPrimitives';
 import { fakeTimeSeries, fakePlotBands } from '../../../utils/fakeData';
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
+import { THRESHOLD_EDITOR_ARG_TYPES } from '../../argTypes';
 
 const meta: Meta<typeof PlaygroundChart> = {
   title: '01 Highcharts/Threshold Editor/Sensor Threshold Editor (draggable)',
@@ -20,11 +22,16 @@ export default meta;
 
 type Story = StoryObj<typeof PlaygroundChart>;
 type ThresholdArgs = {
-  editable: boolean;
-  bands: number;
-  unit: string;
-  xAxisTitle: string;
-  colorPalette: ColorPalette;
+  editable:             boolean;
+  xBands:               number;
+  unit:                 string;
+  xAxisTitle:           string;
+  colorPalette:         ColorPalette;
+  initialThresholdHigh: number;
+  initialThresholdLow:  number;
+  yMin:                 number;
+  yMax:                 number;
+  seriesName:           string;
 };
 type AfterVerityStory = StoryObj<ThresholdArgs>;
 
@@ -44,7 +51,7 @@ export const Default: Story = {
     ];
     return (
       <div>
-        <div style={{ marginBottom: 8, fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#374151' }}>
+        <div style={{ marginBottom: 8, fontFamily: CHART_FONT_FAMILY, fontSize: 13, color: '#374151' }}>
           Drag the red or blue bands to adjust thresholds. Current: high {thresholds.high}°F, low {thresholds.low}°F.
         </div>
         <PlaygroundChart
@@ -98,33 +105,32 @@ export const Default: Story = {
 
 export const AfterVerityHighcharts: AfterVerityStory = {
   name: 'After Verity Highcharts: ThresholdEditorChart',
-  args: { editable: true, bands: 2, unit: '°F', xAxisTitle: '', colorPalette: 'categorical' },
+  args: {
+    editable:             true,
+    xBands:               2,
+    unit:                 '°F',
+    xAxisTitle:           '',
+    colorPalette:         'categorical',
+    initialThresholdHigh: 75,
+    initialThresholdLow:  60,
+    yMin:                 40,
+    yMax:                 100,
+    seriesName:           'Temperature',
+  },
   argTypes: {
-    editable: {
-      control: 'boolean',
-      description: '`editable?: boolean` — enables drag-to-edit on threshold bands',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
-    },
-    bands: {
-      control: { type: 'range', min: 0, max: 5, step: 1 },
-      description: '`bands?: PlotBand[]` (demo slider) — alert-event plotBands on the x-axis',
-      table: { type: { summary: 'PlotBand[]' }, defaultValue: { summary: '2' } },
-    },
-    unit: {
+    editable:             THRESHOLD_EDITOR_ARG_TYPES.editable,
+    xBands:               THRESHOLD_EDITOR_ARG_TYPES.xBands,
+    unit:                 THRESHOLD_EDITOR_ARG_TYPES.unit,
+    xAxisTitle:           THRESHOLD_EDITOR_ARG_TYPES.xAxisTitle,
+    colorPalette:         THRESHOLD_EDITOR_ARG_TYPES.colorPalette,
+    initialThresholdHigh: THRESHOLD_EDITOR_ARG_TYPES.initialThresholdHigh,
+    initialThresholdLow:  THRESHOLD_EDITOR_ARG_TYPES.initialThresholdLow,
+    yMin:                 THRESHOLD_EDITOR_ARG_TYPES.yMin,
+    yMax:                 THRESHOLD_EDITOR_ARG_TYPES.yMax,
+    seriesName: {
       control: 'text',
-      description: '`unit?: string` — y-axis label suffix',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '"°F"' } },
-    },
-    xAxisTitle: {
-      control: 'text',
-      description: '`xAxisTitle?: string` — x-axis label text.',
-      table: { type: { summary: 'string' }, defaultValue: { summary: '""' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` (base prop) — drives data series line color. Threshold bands always use status tokens.',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
+      description: 'Label for the data series shown in the legend and tooltip.',
+      table: { type: { summary: 'string' }, defaultValue: { summary: 'Temperature' } },
     },
   },
   parameters: {
@@ -149,23 +155,23 @@ export const AfterVerityHighcharts: AfterVerityStory = {
     },
   },
   render: (args) => {
-    const [thresholds, setThresholds] = useState({ high: 75, low: 60 });
+    const [thresholds, setThresholds] = useState({ high: args.initialThresholdHigh, low: args.initialThresholdLow });
     const data  = fakeTimeSeries({ count: 192, stepMs: 5 * 60 * 1000, base: 68, amplitude: 6, noise: 1.5 });
-    const alertBands = fakePlotBands({ count: args.bands });
+    const alertBands = fakePlotBands({ count: args.xBands });
     return (
       <>
-        <div style={{ marginBottom: 8, fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#374151' }}>
+        <div style={{ marginBottom: 8, fontFamily: CHART_FONT_FAMILY, fontSize: 13, color: '#374151' }}>
           {args.editable
             ? `Drag the red or amber bands to adjust. Current: high ${thresholds.high}${args.unit}, low ${thresholds.low}${args.unit}.`
             : `Read-only view. Current: high ${thresholds.high}${args.unit}, low ${thresholds.low}${args.unit}.`}
         </div>
         <ThresholdEditorChart
           seriesData={data as [number, number][]}
-          seriesName="Temperature"
+          seriesName={args.seriesName}
           colorPalette={args.colorPalette}
           thresholds={thresholds}
           onThresholdChange={(next) => setThresholds((prev) => ({ high: next.high ?? prev.high, low: next.low ?? prev.low }))}
-          valueRange={{ min: 40, max: 100 }}
+          valueRange={{ min: args.yMin, max: args.yMax }}
           unit={args.unit}
           xAxisTitle={args.xAxisTitle}
           alertEvents={alertBands}

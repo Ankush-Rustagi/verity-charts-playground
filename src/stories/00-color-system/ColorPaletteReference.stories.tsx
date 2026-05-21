@@ -1,23 +1,17 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
+import { LIGHT_CHART, DARK_CHART, CHART_FONT_FAMILY } from '../../primitives/chartColors';
 
 // ─── Token definitions ────────────────────────────────────────────────────────
+// Chart colors come from chartColors.ts (single source of truth).
+// Only UI chrome tokens (bg, surface, border, text, etc.) are defined here.
 
 const LIGHT = {
   bg: '#f5f6f8', surface: '#ffffff', border: '#e6eaee',
   text: '#1a1d23', textMuted: '#6b7280', radius: '10px',
   shadow: '0 1px 4px rgba(0,0,0,.08)',
   chartGrid: '#e6eaee', chartAxis: '#949ca5',
-  // Categorical – Verkada design system tokens
-  vc1: '#226ecd', vc2: '#19a0d5', vc3: '#6565d9', vc4: '#fb9717',
-  vc5: '#de3243', vc6: '#14ba74', vc7: '#893dcd', vc8: '#ff5500',
-  // Status
-  vcSuccess: '#14ba74', vcWarning: '#f18313', vcDanger: '#de3243', vcNeutral: '#838e98',
-  // Sequential (blue-10 → blue-1000)
-  vs1: '#dee9f8', vs2: '#9cbee9', vs3: '#6fa1de', vs4: '#4e8bd7',
-  vs5: '#347ad1', vs6: '#226ecd', vs7: '#184d8f', vs8: '#122740',
-  // Diverging (red-500 → neutral-75 → blue-700)
-  vdNeg2: '#cb2939', vdNeg1: '#f3847d', vdMid: '#dce0e4', vdPos1: '#9cbee9', vdPos2: '#1d5eae',
+  ...LIGHT_CHART,
 };
 
 const DARK = {
@@ -25,16 +19,7 @@ const DARK = {
   text: '#f0f1f5', textMuted: '#9ca3af', radius: '10px',
   shadow: '0 1px 4px rgba(0,0,0,.4)',
   chartGrid: '#313640', chartAxis: '#6d737e',
-  // Categorical – lighter variants for dark backgrounds
-  vc1: '#4e8bd7', vc2: '#63d0f5', vc3: '#9999ff', vc4: '#feb756',
-  vc5: '#ed6c69', vc6: '#52d393', vc7: '#a164d7', vc8: '#ff7733',
-  // Status
-  vcSuccess: '#52d393', vcWarning: '#feb756', vcDanger: '#ed6c69', vcNeutral: '#949ca5',
-  // Sequential reversed (dark → light on dark bg)
-  vs1: '#122740', vs2: '#184d8f', vs3: '#226ecd', vs4: '#347ad1',
-  vs5: '#4e8bd7', vs6: '#6fa1de', vs7: '#9cbee9', vs8: '#dee9f8',
-  // Diverging
-  vdNeg2: '#ed6c69', vdNeg1: '#f3847d', vdMid: '#3f515f', vdPos1: '#4e8bd7', vdPos2: '#347ad1',
+  ...DARK_CHART,
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -153,7 +138,7 @@ function ColorPaletteReference() {
   const [dark, setDark] = useState(false);
   const t = dark ? DARK : LIGHT;
 
-  const font = '-apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif';
+  const font = CHART_FONT_FAMILY;
 
   return (
     <div style={{
@@ -248,7 +233,7 @@ function ColorPaletteReference() {
           <div style={{ marginBottom: 20 }}>
             <h2 style={{ fontSize: 15, fontWeight: 600, color: t.text }}>Sequential</h2>
             <p style={{ fontSize: 12, color: t.textMuted, marginTop: 3 }}>
-              Verkada blue, 8 steps light-to-dark (blue-10 → blue-1000). For data where magnitude matters.
+              Verkada blue, 8 steps light-to-dark (blue-10 → blue-800). For data where magnitude matters.
             </p>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 24 }}>
@@ -259,8 +244,8 @@ function ColorPaletteReference() {
               { color: t.vs4, token: '--vs-4', label: 'blue-300' },
               { color: t.vs5, token: '--vs-5', label: 'blue-500' },
               { color: t.vs6, token: '--vs-6', label: 'blue-600' },
-              { color: t.vs7, token: '--vs-7', label: 'blue-800' },
-              { color: t.vs8, token: '--vs-8', label: 'blue-1000' },
+              { color: t.vs7, token: '--vs-7', label: 'blue-700' },
+              { color: t.vs8, token: '--vs-8', label: 'blue-800' },
             ].map(s => <Swatch key={s.token} color={s.color} token={s.token} label={s.label} />)}
           </div>
           <ChartLabel t={t}>Preview: magnitude column chart</ChartLabel>
@@ -356,12 +341,21 @@ function ColorPaletteReference() {
         description="4 semantic tokens for alert-based charts. Values map to health states, not to data categories."
         note="Consumers: Gauge bands, ThresholdEditorChart zones, KPIValue delta coloring, LineChart zones"
       >
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginBottom: 20 }}>
+          {[
+            { color: t.vcSuccess, token: '--vc-success', label: 'green-500'  },
+            { color: t.vcWarning, token: '--vc-warning', label: 'yellow-600' },
+            { color: t.vcDanger,  token: '--vc-danger',  label: 'red-400'    },
+            { color: t.vcNeutral, token: '--vc-neutral', label: 'neutral-300' },
+          ].map(s => <Swatch key={s.token} color={s.color} token={s.token} label={s.label} />)}
+        </div>
+
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
           {([
-            { color: t.vcSuccess, label: 'Success', token: 'green-500',  desc: 'Within threshold, healthy, operational',      example: 'KPI delta positive, gauge in range, zone below alert level' },
-            { color: t.vcWarning, label: 'Warning', token: 'yellow-600', desc: 'Approaching threshold, degraded',             example: 'KPI delta neutral, gauge near limit, zone approaching alert level' },
-            { color: t.vcDanger,  label: 'Danger',  token: 'red-400',    desc: 'Threshold breached, failing',                example: 'KPI delta negative, gauge over limit, alarm fired' },
-            { color: t.vcNeutral, label: 'Neutral',  token: 'neutral-400', desc: 'No signal, unknown, inactive',              example: 'Device offline, data not available, gauge bands with no condition' },
+            { color: t.vcSuccess, label: 'Success', token: 'green-500',   desc: 'Within threshold, healthy, operational',      example: 'KPI delta positive, gauge in range, zone below alert level' },
+            { color: t.vcWarning, label: 'Warning', token: 'yellow-600',  desc: 'Approaching threshold, degraded',             example: 'KPI delta neutral, gauge near limit, zone approaching alert level' },
+            { color: t.vcDanger,  label: 'Danger',  token: 'red-400',     desc: 'Threshold breached, failing',                example: 'KPI delta negative, gauge over limit, alarm fired' },
+            { color: t.vcNeutral, label: 'Neutral', token: 'neutral-300', desc: 'No signal, unknown, inactive',               example: 'Device offline, data not available, gauge bands with no condition' },
           ]).map(({ color, label, token, desc, example }) => (
             <div
               key={label}

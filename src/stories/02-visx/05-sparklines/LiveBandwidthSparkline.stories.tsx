@@ -1,4 +1,6 @@
+import { CHART_FONT_FAMILY } from '../../../primitives/chartColors';
 import type { Meta, StoryObj } from '@storybook/react';
+import { SPARKLINE_ARG_TYPES } from '../../argTypes';
 import { Group } from '@visx/group';
 import { scaleLinear, scaleTime } from '@visx/scale';
 import { AreaClosed, LinePath } from '@visx/shape';
@@ -46,7 +48,7 @@ export const Default: Story = {
       range: [height, 0],
     });
     return (
-      <div style={{ width: width + 24, padding: 12, borderRadius: 8, background: '#FFFFFF', border: '1px solid #E5E7EB', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ width: width + 24, padding: 12, borderRadius: 8, background: '#FFFFFF', border: '1px solid #E5E7EB', fontFamily: CHART_FONT_FAMILY }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
           <span style={{ fontSize: 12, color: '#6B7280' }}>Live bandwidth</span>
           <span style={{ fontSize: 16, fontWeight: 600, color: '#111827' }}>{latest.toFixed(1)} Mbps</span>
@@ -79,45 +81,9 @@ export const Default: Story = {
 
 export const AfterVerityHighcharts: AfterVerityStory = {
   name: 'After Verity Highcharts: Sparkline (migration from visx)',
-  args: { type: 'area', height: 56, width: 300, colorPalette: 'categorical', showLatestValue: true, caption: 'Live bandwidth', unit: ' Mbps' },
+  args: { type: 'area', height: 60, width: 280, colorPalette: 'categorical', showLatestValue: true, caption: 'Live bandwidth', unit: ' Mbps' },
   argTypes: {
-    type: {
-      control: 'inline-radio',
-      options: ['line', 'area'],
-      description: '`type?: "line" | "area"` — line without fill or filled area',
-      table: { type: { summary: '"line" | "area"' }, defaultValue: { summary: '"area"' } },
-    },
-    colorPalette: {
-      control: 'inline-radio',
-      options: ['categorical', 'sequential', 'diverging', 'status'],
-      description: '`colorPalette?: ColorPalette` — index 0 drives area/line color',
-      table: { type: { summary: 'ColorPalette' }, defaultValue: { summary: '"categorical"' } },
-    },
-    height: {
-      control: { type: 'range', min: 24, max: 120, step: 4 },
-      description: '`height?: number` (default 56)',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '56' } },
-    },
-    width: {
-      control: { type: 'range', min: 80, max: 480, step: 8 },
-      description: '`width?: number` (default 240)',
-      table: { type: { summary: 'number' }, defaultValue: { summary: '300' } },
-    },
-    showLatestValue: {
-      control: 'boolean',
-      description: '`showEndpoint?: boolean` (spec) — highlights last value',
-      table: { type: { summary: 'boolean' }, defaultValue: { summary: 'true' } },
-    },
-    caption: {
-      control: 'text',
-      description: '`label: string` — metric name shown above sparkline',
-      table: { type: { summary: 'string' } },
-    },
-    unit: {
-      control: 'text',
-      description: '`unit?: string` — appended after the latest value',
-      table: { type: { summary: 'string' } },
-    },
+    ...SPARKLINE_ARG_TYPES,
   },
   parameters: {
     docs: {
